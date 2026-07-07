@@ -4,129 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>프로필 홈페이지</title>
-    <!-- Pretendard 폰트 로드 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
-    <!-- Supabase JS 라이브러리 추가 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
     <style>
-        :root {
-            --transition-speed: 0.3s;
-        }
+        :root { --transition-speed: 0.3s; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { display: flex; justify-content: center; min-height: 100vh; transition: background-color var(--transition-speed) ease; }
+        .mobile-container { width: 100%; max-width: 480px; min-height: 100vh; position: relative; box-shadow: 0 0 30px rgba(0, 0, 0, 0.15); transition: all var(--transition-speed) ease; overflow-y: auto; overflow-x: hidden; }
 
-        /* ---------------- 공통 레이아웃 ---------------- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Pretendard', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-            transition: background-color var(--transition-speed) ease;
-        }
-
-        .mobile-container {
-            width: 100%;
-            max-width: 480px; 
-            min-height: 100vh;
-            position: relative;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
-            transition: all var(--transition-speed) ease;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        /* ---------------- 기본 접속 화면 ---------------- */
         body.theme-index { background-color: #f0f2f5; }
-        body.theme-index .mobile-container {
-            background-color: #ffffff;
-            color: #333333;
-        }
-        .index-screen {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 20px;
-        }
+        body.theme-index .mobile-container { background-color: #ffffff; color: #333333; }
+        .index-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; padding: 20px; }
 
-        /* ---------------- 테마 1: 라이트 인플루언서 ---------------- */
         body.theme-light { background-color: #e9ecef; }
-        body.theme-light .mobile-container {
-            background-color: #f8f9fa;
-            color: #333333;
-            --card-bg: #ffffff;
-            --accent: #ff6b81;
-            --radius: 20px;
-            --border: 1px solid #f1f3f5;
-        }
+        body.theme-light .mobile-container { background-color: #f8f9fa; color: #333333; --card-bg: #ffffff; --accent: #ff6b81; --radius: 20px; --border: 1px solid #f1f3f5; }
 
-        /* ---------------- 테마 2: 화이트 베이지 카퍼 CEO ---------------- */
         body.theme-beige { background-color: #f4ede4; }
-        body.theme-beige .mobile-container {
-            background-color: #fdfcfa;
-            color: #333333;
-            --card-bg: #ffffff;
-            --accent: #b5815e; /* 카퍼 골드 */
-            --radius: 8px;
-            --border: 1px solid #e8e0d5;
-        }
+        body.theme-beige .mobile-container { background-color: #fdfcfa; color: #333333; --card-bg: #ffffff; --accent: #b5815e; --radius: 8px; --border: 1px solid #e8e0d5; }
 
-        /* ---------------- 테마 3: 관리자 ---------------- */
         body.theme-admin { background-color: #f4f6f8; }
-        body.theme-admin .mobile-container {
-            background-color: #ffffff;
-            color: #333;
-            --card-bg: #ffffff;
-            --accent: #0066cc;
-            --radius: 12px;
-            --border: 1px solid #ddd;
-        }
+        body.theme-admin .mobile-container { background-color: #ffffff; color: #333; --card-bg: #ffffff; --accent: #0066cc; --radius: 12px; --border: 1px solid #ddd; }
 
-        /* ---------------- 공통 UI 컴포넌트 ---------------- */
-        .header {
-            padding: 40px 20px 20px;
-            text-align: center;
-        }
+        .header { padding: 40px 20px 20px; text-align: center; }
         .header h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
         .header p { font-size: 14px; opacity: 0.8; word-break: keep-all; line-height: 1.5; }
-        
-        .section {
-            padding: 20px; display: flex; flex-direction: column; gap: 16px;
-        }
-
-        .card {
-            background-color: var(--card-bg); border-radius: var(--radius); padding: 20px; border: var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: all var(--transition-speed);
-        }
-
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center; background-color: var(--accent); color: #fff; text-decoration: none; padding: 14px 20px; border-radius: var(--radius); font-weight: 600; font-size: 15px; transition: opacity 0.2s; border: none; cursor: pointer; width: 100%;
-        }
+        .section { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+        .card { background-color: var(--card-bg); border-radius: var(--radius); padding: 20px; border: var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: all var(--transition-speed); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; background-color: var(--accent); color: #fff; text-decoration: none; padding: 14px 20px; border-radius: var(--radius); font-weight: 600; font-size: 15px; transition: opacity 0.2s; border: none; cursor: pointer; width: 100%; }
         .btn:hover { opacity: 0.85; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-outline { background-color: transparent; color: var(--accent); border: 1px solid var(--accent); }
 
-        /* ---------------- 라이트 테마 UI ---------------- */
         .contact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
-        .contact-icon {
-            display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; color: inherit; font-size: 12px; background: var(--card-bg); padding: 12px 0; border-radius: var(--radius); border: var(--border); text-align: center;
-        }
+        .contact-icon { display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; color: inherit; font-size: 12px; background: var(--card-bg); padding: 12px 0; border-radius: var(--radius); border: var(--border); text-align: center; }
         .contact-icon i { font-size: 24px; font-style: normal; }
-
         .accordion-item { background: var(--card-bg); border-radius: var(--radius); margin-bottom: 12px; border: var(--border); overflow: hidden; }
         .accordion-header { padding: 18px 20px; font-weight: 700; font-size: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
         .accordion-inner { min-height: 0; overflow: hidden; }
         .accordion-content.open { grid-template-rows: 1fr; }
         .accordion-body { padding: 0 20px 20px; font-size: 14px; line-height: 1.6; color: #555; }
-        
         .block-text { margin-bottom: 15px; }
         .block-text b { display: block; margin-bottom: 5px; color: #111; }
         ul.custom-list { padding-left: 20px; margin-bottom: 15px; }
         ul.custom-list li { margin-bottom: 6px; }
 
-        /* ---------------- 베이지 테마 UI ---------------- */
         .quote-box { font-style: italic; font-weight: 600; color: var(--accent); text-align: center; margin: 10px 0 20px; font-size: 15px; }
         .tabs-container { display: flex; border-bottom: 2px solid #e8e0d5; margin: 10px 20px; }
         .tab-btn { flex: 1; background: none; border: none; color: #999; padding: 15px 0; font-size: 15px; font-weight: 600; cursor: pointer; position: relative; transition: color 0.3s; }
@@ -135,13 +59,10 @@
         .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .video-widget { background: #f7f4f0; border-radius: var(--radius); height: 200px; display: flex; align-items: center; justify-content: center; color: #888; margin: 20px 0; border: var(--border); }
         .link-list { display: flex; flex-direction: column; gap: 10px; }
 
-        /* ---------------- 관리자 전용 UI ---------------- */
         .admin-login { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
         .admin-login input { padding: 12px; border-radius: 8px; border: 1px solid #ccc; width: 100%; margin-bottom: 15px; text-align: center; font-size: 16px; }
-
         .admin-tabs-row { display: flex; overflow-x: auto; gap: 8px; margin-bottom: 20px; padding-bottom: 10px; }
         .admin-tabs-row button { white-space: nowrap; padding: 10px 16px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
         .admin-tabs-row button.active { background: #333; color: #fff; }
@@ -154,52 +75,102 @@
         .admin-group.open .admin-group-body { display: block; }
 
         .admin-list-item { border: 1px solid #e1e1e1; border-radius: 8px; padding: 15px; margin-bottom: 12px; background: #fcfcfc; position: relative; }
-        .admin-list-item h4 { font-size: 14px; margin-bottom: 10px; color: #444; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         
-        .admin-controls { display: flex; gap: 5px; margin-bottom: 10px; justify-content: flex-end; }
+        .admin-controls { display: flex; gap: 5px; margin-bottom: 10px; align-items:center; }
         .admin-controls button { padding: 4px 8px; font-size: 12px; border-radius: 4px; border: 1px solid #ccc; background:#fff; cursor: pointer; }
         .admin-controls button:hover { background: #f0f0f0; }
-        .admin-controls button.del { color: #d32f2f; border-color: #d32f2f; }
+        .admin-controls button.del { color: #d32f2f; border-color: #d32f2f; margin-left: auto; }
         .admin-controls button.del:hover { background: #ffebee; }
 
         .admin-form-group { margin-bottom: 12px; }
         .admin-form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; color:#555; }
-        .admin-form-group input, .admin-form-group textarea, .admin-form-group select {
-            width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; background:#fff;
-        }
+        .admin-form-group input, .admin-form-group textarea, .admin-form-group select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; background:#fff; }
         .admin-form-group textarea { resize: vertical; min-height: 70px; }
         
         .btn-add { background: #eef2f5; color: #0066cc; border: 1px dashed #0066cc; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; }
         .btn-add:hover { background: #e0e8f0; }
+
+        /* ---------------- 모달 및 드래그 관련 스타일 ---------------- */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.2s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content { background: #fff; padding: 25px; border-radius: 16px; width: 90%; max-width: 350px; transform: translateY(20px); transition: 0.2s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-content h3 { margin-bottom: 15px; color: #111; font-size:18px; }
+        .modal-content input, .modal-content select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; font-size: 14px; }
+        .modal-content .modal-btns { display: flex; gap: 10px; }
+        .modal-content .modal-btns button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .modal-content .btn-cancel { background: #eee; color: #555; }
+        .modal-content .btn-confirm { background: #0066cc; color: #fff; }
+
+        .type-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .type-btn { padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; color: #555; }
+        .type-btn.active { border-color: #0066cc; background: #f0f7ff; color: #0066cc; font-weight: bold; }
+        .type-btn i { font-size: 20px; font-style: normal; }
+
+        .drag-handle { cursor: grab; padding: 5px 10px; font-size: 16px; color: #999; margin-right: 10px; }
+        .drag-handle:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.4; background: #f5f5f5; border: 2px dashed #ccc; }
+        .title-area { font-weight: bold; font-size:13px; color: #0066cc; }
+        .title-area.sub { color: #555; background: #e1e1e1; padding: 3px 6px; border-radius: 4px; font-size:11px; }
     </style>
 </head>
 <body>
 
-    <!-- 모바일 컨테이너 -->
     <div class="mobile-container" id="app"></div>
 
+    <!-- 모달: 프로필 추가 -->
+    <div class="modal-overlay" id="modalAddProfile">
+        <div class="modal-content">
+            <h3>새 프로필 만들기</h3>
+            <label style="font-size:12px; color:#666; margin-bottom:5px; display:block;">고유 접속 주소 (영문/숫자)</label>
+            <input type="text" id="addProfileId" placeholder="예: my_page">
+            <label style="font-size:12px; color:#666; margin-bottom:5px; display:block;">관리자용 표시 이름</label>
+            <input type="text" id="addProfileName" placeholder="예: 내 프로필">
+            <label style="font-size:12px; color:#666; margin-bottom:5px; display:block;">테마 스타일</label>
+            <select id="addProfileType">
+                <option value="1">목록형 (프로필 1 스타일)</option>
+                <option value="2">탭 형식 (프로필 2 스타일)</option>
+            </select>
+            <div class="modal-btns">
+                <button class="btn-cancel" onclick="closeModal('modalAddProfile')">취소</button>
+                <button class="btn-confirm" onclick="confirmAddProfile()">생성하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달: 블록 추가 -->
+    <div class="modal-overlay" id="modalAddBlock">
+        <div class="modal-content">
+            <h3>패널 내용 추가</h3>
+            <p style="font-size:13px; color:#666; margin-bottom:15px;">추가할 형식을 선택하세요.</p>
+            <div class="type-select-grid">
+                <button class="type-btn active" onclick="selectBlockType(this, 'text')"><i>📝</i>텍스트</button>
+                <button class="type-btn" onclick="selectBlockType(this, 'list')"><i>📌</i>목록형</button>
+                <button class="type-btn" onclick="selectBlockType(this, 'button')"><i>👆</i>버튼</button>
+                <button class="type-btn" onclick="selectBlockType(this, 'image')"><i>🖼️</i>이미지</button>
+            </div>
+            <input type="hidden" id="addBlockType" value="text">
+            <input type="hidden" id="addBlockPIdx" value="">
+            <input type="hidden" id="addBlockAccIdx" value="">
+            <div class="modal-btns">
+                <button class="btn-cancel" onclick="closeModal('modalAddBlock')">취소</button>
+                <button class="btn-confirm" onclick="confirmAddBlock()">추가하기</button>
+            </div>
+        </div>
+    </div>
+
 <script>
-    /* ==========================================
-       1. Supabase 연동 설정
-       ========================================== */
     const SUPABASE_URL = 'https://pujpflrpkpggyrgbstka.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1anBmbHJwa3BnZ3lyZ2JzdGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjUwMjAsImV4cCI6MjA5ODk0MTAyMH0.KNFyc6iurqLGVR8irJTieEsAk9eoDwlM5DqPOEAY7ho';
-    
-    // Supabase 클라이언트 생성
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    /* ==========================================
-       2. 기본 데이터 구조 정의
-       ========================================== */
     const defaultData = {
-        version: 4,
-        profiles: {
-            "star_bodre": {
-                type: "type1",
-                title: "프로필 1 (스타 보드레)",
+        version: 5,
+        profileList: [
+            {
+                id: "star_bodre", type: "type1", title: "프로필 1 (스타 보드레)",
                 data: {
-                    name: "이은비",
-                    subtitle: "Artist · Actor · Tarot Reader · Creator",
+                    name: "이은비", subtitle: "Artist · Actor · Tarot Reader · Creator",
                     contacts: [
                         { icon: "📞", label: "연락처", link: "tel:01025498302" },
                         { icon: "💬", label: "카카오톡", link: "kakaoopen://join?id=romy0501" },
@@ -211,17 +182,17 @@
                             title: "🎬 배우 (Actor)",
                             blocks: [
                                 { type: "button", title: "🟢 네이버 프로필 바로가기", content: "https://search.naver.com/search.naver?where=nexearch&sm=tab_etc&mra=bjky&pkid=1&os=33390505&qvt=0&query=%EC%9D%B4%EC%9D%80%EB%B9%84" },
-                                { type: "list", title: "광고 경력", content: "중흥건설 세종시 중흥S클래스 아파트 광고\n명인제약 이가탄 광고" },
-                                { type: "list", title: "방송/드라마", content: "EBS 교양 메인 타이틀\nEBS 드라마 메인 타이틀\nTVN 드라마 응답하라 1994\nTVN 드라마 혼술남녀" },
-                                { type: "list", title: "단편영화", content: "단편영화 스티커 (다은 役)\n단편영화 엄마의 바다 (수진 役)\n단편영화 John Doe (나연 役)" },
-                                { type: "list", title: "모델 및 특강", content: "CJ 홈쇼핑 ENG 영상 모델\n필립스 LED 바이럴 모델\n빕스 바이럴 모델\n10JAM 바이럴 모델\n토소웅 화장품 모델\n더블유랩 화장품 모델\n천재교육 국어교과서 표지모델\n아이클릭아트 이미지 모델\n인터넷 쇼핑몰 및 보도기사 모델\n서울지역 초등학교 진로교육 배우특강" }
+                                { type: "list", title: "광고 경력", content: "중흥건설 세종시 중흥S클래스 아파트 광고\\n명인제약 이가탄 광고" },
+                                { type: "list", title: "방송/드라마", content: "EBS 교양 메인 타이틀\\nEBS 드라마 메인 타이틀\\nTVN 드라마 응답하라 1994\\nTVN 드라마 혼술남녀" },
+                                { type: "list", title: "단편영화", content: "단편영화 스티커 (다은 役)\\n단편영화 엄마의 바다 (수진 役)\\n단편영화 John Doe (나연 役)" },
+                                { type: "list", title: "모델 및 특강", content: "CJ 홈쇼핑 ENG 영상 모델\\n필립스 LED 바이럴 모델\\n빕스 바이럴 모델\\n10JAM 바이럴 모델\\n토소웅 화장품 모델\\n더블유랩 화장품 모델\\n천재교육 국어교과서 표지모델\\n아이클릭아트 이미지 모델\\n인터넷 쇼핑몰 및 보도기사 모델\\n서울지역 초등학교 진로교육 배우특강" }
                             ]
                         },
                         {
                             title: "🔮 타로 (Tarot)",
                             blocks: [
                                 { type: "text", title: "자격증", content: "타로심리상담사 자격증 보유 (한국문화예술교육협회)" },
-                                { type: "list", title: "경력 리스트", content: "2014년 타로리딩 시작\n홍카페 전화타로 상담 2년\n온라인 타로 강의 진행 5년\n오프라인 타로 강의 진행 2년\n1만건 이상의 온,오프라인 상담 경력\n전국 고등학교, 대학교 대상 축제 부스 다수 운영\n수도권 청소년수련관, 청소년센터 축제 부스 다수 운영" },
+                                { type: "list", title: "경력 리스트", content: "2014년 타로리딩 시작\\n홍카페 전화타로 상담 2년\\n온라인 타로 강의 진행 5년\\n오프라인 타로 강의 진행 2년\\n1만건 이상의 온,오프라인 상담 경력\\n전국 고등학교, 대학교 대상 축제 부스 다수 운영\\n수도권 청소년수련관, 청소년센터 축제 부스 다수 운영" },
                                 { type: "button", title: "오픈채팅 상담하기", content: "https://open.kakao.com/o/snP8CDR" }
                             ]
                         },
@@ -237,106 +208,66 @@
                         {
                             title: "📜 자격증 전체보기",
                             blocks: [
-                                { type: "list", title: "취득 목록", content: "타로 심리 상담사\n미술 심리 상담사\n음악 심리 상담사\n조주 기능사" }
+                                { type: "list", title: "취득 목록", content: "타로 심리 상담사\\n미술 심리 상담사\\n음악 심리 상담사\\n조주 기능사" }
                             ]
                         }
                     ]
                 }
             },
-            "Copper_CEO": {
-                type: "type2",
-                title: "프로필 2 (카퍼 CEO)",
+            {
+                id: "Copper_CEO", type: "type2", title: "프로필 2 (카퍼 CEO)",
                 data: {
                     top: {
-                        title: "CEO 철학 및 인사말",
-                        quote: "하나의 작은 불씨가 거대한 변화의 물결이 되도록.",
-                        text: "카퍼컴퍼니가 내딛는 첫걸음과 우리가 마주한 청년들의 현실은 지금 당장 미약하고 조용해 보일지도 모릅니다. 하지만 우리는 눈앞의 크기보다 그 안에 담긴 무한한 가능성을 믿습니다.\n\n사회적 사각지대에 놓인 이들의 손을 잡고 세상에 퍼뜨리는 우리의 '선한 영향력'은, 머지않아 누구도 무시할 수 없는 창대한 결실과 거대한 상생의 생태계로 증명될 것입니다. 혼자가 아닌 함께 만들어가는 미래, 그 위대한 여정의 시작에 카퍼컴퍼니가 있습니다."
+                        title: "CEO 철학 및 인사말", quote: "하나의 작은 불씨가 거대한 변화의 물결이 되도록.",
+                        text: "카퍼컴퍼니가 내딛는 첫걸음과 우리가 마주한 청년들의 현실은 지금 당장 미약하고 조용해 보일지도 모릅니다. 하지만 우리는 눈앞의 크기보다 그 안에 담긴 무한한 가능성을 믿습니다.\\n\\n사회적 사각지대에 놓인 이들의 손을 잡고 세상에 퍼뜨리는 우리의 '선한 영향력'은, 머지않아 누구도 무시할 수 없는 창대한 결실과 거대한 상생의 생태계로 증명될 것입니다. 혼자가 아닌 함께 만들어가는 미래, 그 위대한 여정의 시작에 카퍼컴퍼니가 있습니다."
                     },
                     tabs: [
                         {
-                            tabName: "AI 맞춤 컨설팅",
-                            title: "🌿 자원절약, 환경보호 (AI 맞춤 컨설팅 의류)",
-                            quote: "불필요한 낭비를 줄이고, 당신의 취향에 도달하는 지속 가능한 패션",
-                            imageUrl: "",
+                            tabName: "AI 맞춤 컨설팅", title: "🌿 자원절약, 환경보호 (AI 맞춤 컨설팅 의류)", quote: "불필요한 낭비를 줄이고, 당신의 취향에 도달하는 지속 가능한 패션", imageUrl: "",
                             text: "카퍼컴퍼니는 무분별한 의류 생산과 소비에서 벗어나, 고도화된 AI 알고리즘과 정밀 데이터를 기반으로 고객에게 가장 완벽한 '확신'의 스타일만을 제안합니다. 옷을 사고 실패하여 버려지는 탐색 비용과 자원 낭비를 원천적으로 차감(Elimination)함으로써, 환경을 보호하고 패션의 품격을 지키는 미래형 지속 가능 비즈니스를 실현합니다.",
-                            links: "AI 맞춤 컨설팅 홈페이지 링크|#\nAI 맞춤 컨설팅 카카오톡 플친|#\nAI 맞춤 컨설팅 공식 인스타|#"
+                            links: "AI 맞춤 컨설팅 홈페이지 링크|#\\nAI 맞춤 컨설팅 카카오톡 플친|#\\nAI 맞춤 컨설팅 공식 인스타|#"
                         },
                         {
-                            tabName: "청년 예술인 지원",
-                            title: "✨ 작은관심, 응원 (청년 예술인 지원)",
-                            quote: "제도권 밖 사각지대에 놓인 청년 스트리머와 예술인들의 든든한 아군",
-                            imageUrl: "",
+                            tabName: "청년 예술인 지원", title: "✨ 작은관심, 응원 (청년 예술인 지원)", quote: "제도권 밖 사각지대에 놓인 청년 스트리머와 예술인들의 든든한 아군", imageUrl: "",
                             text: "현대 미디어의 주역임에도 불구하고 정식 직업으로 인정받지 못해 소외되었던 청년 예술인들에게 필요한 것은, 어쩌면 사회의 '작은 관심'과 따뜻한 '응원'입니다. 카퍼컴퍼니는 어떠한 구속이나 조건 없이 청년들이 자립할 수 있도록 연간 1억 원 규모의 대규모 사회공헌 '스트리머 프로젝트'를 전개합니다. 굿즈 제작 설비 무상 지원, 일러스트 및 마케팅 지원 등을 통해 청년들의 꿈이 현실이 될 수 있도록 가장 든든한 버팀목이 되어줍니다.",
-                            links: "스트리머 프로젝트 홈페이지 링크|#\n프로젝트 지원 링크|#\n치지직 채널 바로가기|#\n공식 유튜브 채널|#\n공식 X (트위터) 채널|#"
+                            links: "스트리머 프로젝트 홈페이지 링크|#\\n프로젝트 지원 링크|#\\n치지직 채널 바로가기|#\\n공식 유튜브 채널|#\\n공식 X (트위터) 채널|#"
                         }
                     ],
                     footer: {
-                        title: "🛡️ 안전, 미래 세대 (교육 자료 지원)",
-                        quote: "보호받아야 할 아이들의 내일을 지키는 첫걸음",
+                        title: "🛡️ 안전, 미래 세대 (교육 자료 지원)", quote: "보호받아야 할 아이들의 내일을 지키는 첫걸음",
                         text: "카퍼컴퍼니는 우리 사회의 가장 취약한 곳에 있는 아동과 청소년들이 안전한 환경에서 올바르게 성장할 수 있도록 배움의 기회를 넓힙니다. 광주광역시 어린이들을 위한 무상 안전교육 자료 지원부터 소년원 출소 청소년들의 사회 복귀를 돕는 교화 안전 교육까지, 미래 세대를 향한 지속적인 교육 지원 사업을 통해 사회적 안전망을 구축하고 더 건강한 공동체를 만들어갑니다."
                     }
                 }
             }
-        }
+        ]
     };
 
-    /* ==========================================
-       3. 상태 및 헬퍼 함수
-       ========================================== */
     let appData = null; 
     let isAdminAuthenticated = false;
-    let currentAdminTab = 'star_bodre'; // 관리자 탭 상태
+    let currentAdminTabIdx = 0;
     const appEl = document.getElementById('app');
 
-    function textToListHtml(text) {
-        if(!text) return '';
-        return text.split('\n').filter(t => t.trim() !== '').map(item => `<li>${item}</li>`).join('');
-    }
-    function formatTextToBr(text) {
-        if(!text) return '';
-        return text.replace(/\n/g, '<br/>');
-    }
-    function getVal(path) {
-        return path.split('.').reduce((acc, part) => acc && acc[part], appData);
-    }
-    function setVal(path, value) {
-        const parts = path.split('.');
-        const last = parts.pop();
-        const target = parts.reduce((acc, part) => acc[part], appData);
-        target[last] = value;
-    }
+    function textToListHtml(text) { if(!text) return ''; return text.split('\\n').filter(t => t.trim() !== '').map(item => \`<li>\${item}</li>\`).join(''); }
+    function formatTextToBr(text) { if(!text) return ''; return text.replace(/\\n/g, '<br/>'); }
+    function getVal(path) { return path.split('.').reduce((acc, part) => acc && acc[part], appData); }
+    function setVal(path, value) { const parts = path.split('.'); const last = parts.pop(); const target = parts.reduce((acc, part) => acc[part], appData); target[last] = value; }
 
-    /* ==========================================
-       4. Supabase DB 연동 로직
-       ========================================== */
     async function initApp() {
-        appEl.innerHTML = `
-            <div class="index-screen">
-                <h1 style="font-size:22px; margin-bottom:12px; color:#111;">데이터 로딩 중...</h1>
-                <p style="font-size:15px; color:#666;">Supabase 서버에서 정보를 가져오고 있습니다 ⏳</p>
-            </div>
-        `;
-        
+        appEl.innerHTML = \`<div class="index-screen"><h1 style="font-size:22px; margin-bottom:12px; color:#111;">데이터 로딩 중...</h1><p style="font-size:15px; color:#666;">Supabase 서버에서 정보를 가져오고 있습니다 ⏳</p></div>\`;
         try {
-            const { data, error } = await supabaseClient
-                .from('profile_settings')
-                .select('data')
-                .eq('id', 1)
-                .single();
-            
+            const { data, error } = await supabaseClient.from('profile_settings').select('data').eq('id', 1).single();
             if (error) throw error;
-
             if (data && data.data && Object.keys(data.data).length > 0) {
                 appData = data.data;
-                // v4 이전 데이터 마이그레이션
-                if (!appData.version || appData.version < 4 || !appData.profiles) {
-                    appData = {
-                        version: 4,
-                        profiles: {
-                            "star_bodre": { type: "type1", title: "프로필 1", data: appData.star_bodre || defaultData.profiles.star_bodre.data },
-                            "Copper_CEO": { type: "type2", title: "프로필 2", data: appData.copper_ceo || defaultData.profiles.Copper_CEO.data }
-                        }
-                    };
+                if (!appData.version || appData.version < 5) {
+                    let migrateList = [];
+                    if (appData.profiles && !Array.isArray(appData.profiles)) {
+                        for (let k in appData.profiles) { migrateList.push({ id: k, type: appData.profiles[k].type, title: appData.profiles[k].title, data: appData.profiles[k].data }); }
+                    } else if (appData.star_bodre) {
+                        migrateList.push({ id: "star_bodre", type: "type1", title: "프로필 1", data: appData.star_bodre });
+                        migrateList.push({ id: "Copper_CEO", type: "type2", title: "프로필 2", data: appData.copper_ceo });
+                    }
+                    appData = { version: 5, profileList: migrateList };
                     await saveToSupabase(appData, false);
                 }
             } else {
@@ -346,112 +277,41 @@
         } catch (err) {
             console.error('DB 불러오기 에러:', err);
             appData = JSON.parse(JSON.stringify(defaultData));
-            if (err.code === 'PGRST116') {
-                await saveToSupabase(appData, false);
-            }
+            if (err.code === 'PGRST116') await saveToSupabase(appData, false);
         }
         
-        // 현재 해시 기반 탭 설정
         let hash = window.location.hash.substring(1);
-        if(appData && appData.profiles && appData.profiles[hash]) {
-            currentAdminTab = hash;
+        if(appData && appData.profileList) {
+            let foundIdx = appData.profileList.findIndex(p => p.id === hash);
+            if(foundIdx !== -1) currentAdminTabIdx = foundIdx;
         }
-
         router();
     }
 
     async function saveToSupabase(dataObj, showAlert = true) {
-        const { error } = await supabaseClient
-            .from('profile_settings')
-            .upsert({ id: 1, data: dataObj }); 
-            
-        if (error) {
-            console.error('DB 저장 에러:', error);
-            if (showAlert) alert('서버 저장 중 오류가 발생했습니다: ' + error.message);
-        } else {
-            if (showAlert) alert('서버(Supabase)에 성공적으로 저장되었습니다!');
-        }
+        const { error } = await supabaseClient.from('profile_settings').upsert({ id: 1, data: dataObj }); 
+        if (error) { console.error('DB 저장 에러:', error); if (showAlert) alert('서버 저장 중 오류가 발생했습니다: ' + error.message); } 
+        else { if (showAlert) alert('서버(Supabase)에 성공적으로 저장되었습니다!'); }
     }
 
-    /* ==========================================
-       5. 렌더링 함수들
-       ========================================== */
     function renderIndex() {
         document.body.className = 'theme-index';
-        appEl.innerHTML = `
-            <div class="index-screen">
-                <h1 style="font-size:22px; font-weight:800; margin-bottom:12px; color:#111;">프로필 홈페이지</h1>
-                <p style="font-size:15px; color:#666; line-height:1.5;">
-                    이곳은 개인 프로필 웹사이트입니다.<br>
-                    올바른 접속 주소(URL)를 확인해주세요.
-                </p>
-
-                <div style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:280px; margin-top:30px;">
-                    <!-- URL에 직접 해시값을 입력하여 접속 -->
-                </div>
-            </div>
-        `;
+        appEl.innerHTML = \`<div class="index-screen"><h1 style="font-size:22px; font-weight:800; margin-bottom:12px; color:#111;">프로필 홈페이지</h1><p style="font-size:15px; color:#666; line-height:1.5;">이곳은 개인 프로필 웹사이트입니다.<br>올바른 접속 주소(URL)를 확인해주세요.</p></div>\`;
     }
 
-    // Type 1: 아코디언 스타일 (스타 보드레형)
     function renderType1(d) {
         document.body.className = 'theme-light';
-        
-        let contactsHtml = d.contacts.map(c => `
-            <a href="${c.link}" target="_blank" class="contact-icon"><i>${c.icon}</i><span>${c.label}</span></a>
-        `).join('');
-
+        let contactsHtml = d.contacts.map(c => \`<a href="\${c.link}" target="_blank" class="contact-icon"><i>\${c.icon}</i><span>\${c.label}</span></a>\`).join('');
         let accordionsHtml = d.accordions.map(acc => {
             let blocksHtml = acc.blocks.map(b => {
-                if (b.type === 'button') {
-                    return `<a href="${b.content}" target="_blank" class="btn btn-outline" style="margin-bottom:15px; padding:10px;">${b.title}</a>`;
-                } else if (b.type === 'list') {
-                    return `
-                        <div class="block-text">
-                            ${b.title ? `<b>${b.title}</b>` : ''}
-                            <ul class="custom-list">${textToListHtml(b.content)}</ul>
-                        </div>
-                    `;
-                } else if (b.type === 'image') {
-                    return `
-                        <div class="block-text">
-                            ${b.title ? `<b style="display:block; margin-bottom:10px;">${b.title}</b>` : ''}
-                            <img src="${b.content}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;" alt="이미지">
-                        </div>
-                    `;
-                } else { // text
-                    return `
-                        <div class="block-text">
-                            ${b.title ? `<b>${b.title}:</b>` : ''} ${formatTextToBr(b.content)}
-                        </div>
-                    `;
-                }
+                if (b.type === 'button') return \`<a href="\${b.content}" target="_blank" class="btn btn-outline" style="margin-bottom:15px; padding:10px;">\${b.title}</a>\`;
+                else if (b.type === 'list') return \`<div class="block-text">\${b.title ? \`<b>\${b.title}</b>\` : ''}<ul class="custom-list">\${textToListHtml(b.content)}</ul></div>\`;
+                else if (b.type === 'image') return \`<div class="block-text">\${b.title ? \`<b style="display:block; margin-bottom:10px;">\${b.title}</b>\` : ''}<img src="\${b.content}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;" alt="이미지"></div>\`;
+                else return \`<div class="block-text">\${b.title ? \`<b>\${b.title}:</b>\` : ''} \${formatTextToBr(b.content)}</div>\`;
             }).join('');
-
-            return `
-                <div class="accordion-item">
-                    <div class="accordion-header" onclick="toggleAccordion(this)">
-                        <span>${acc.title}</span> <span>▼</span>
-                    </div>
-                    <div class="accordion-content">
-                        <div class="accordion-inner">
-                            <div class="accordion-body" style="padding-top:5px;">
-                                ${blocksHtml}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            return \`<div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)"><span>\${acc.title}</span> <span>▼</span></div><div class="accordion-content"><div class="accordion-inner"><div class="accordion-body" style="padding-top:5px;">\${blocksHtml}</div></div></div></div>\`;
         }).join('');
-
-        appEl.innerHTML = `
-            <div class="header">
-                <h1>${d.name}</h1>
-                <p>${d.subtitle}</p>
-                <div class="contact-grid">${contactsHtml}</div>
-            </div>
-            <div class="section">${accordionsHtml}</div>
-        `;
+        appEl.innerHTML = \`<div class="header"><h1>\${d.name}</h1><p>\${d.subtitle}</p><div class="contact-grid">\${contactsHtml}</div></div><div class="section">\${accordionsHtml}</div>\`;
     }
 
     window.toggleAccordion = function(el) {
@@ -461,54 +321,24 @@
         if (!isOpen) content.classList.add('open');
     };
 
-    // Type 2: 탭 스타일 (카퍼 CEO형)
     function renderType2(d) {
         document.body.className = 'theme-beige';
-
         const renderLinks = (linkString) => {
             if(!linkString) return '';
-            return linkString.split('\n').filter(l => l.trim() !== '').map(item => {
-                const parts = item.split('|');
-                return `<a href="${parts[1] || '#'}" target="_blank" class="btn btn-outline">${parts[0]}</a>`;
+            return linkString.split('\\n').filter(l => l.trim() !== '').map(item => {
+                const parts = item.split('|'); return \`<a href="\${parts[1] || '#'}" target="_blank" class="btn btn-outline">\${parts[0]}</a>\`;
             }).join('');
         };
-
-        let tabsBtnHtml = d.tabs.map((tab, i) => `
-            <button class="tab-btn ${i===0?'active':''}" onclick="switchTab('tab-${i}', this)">${tab.tabName}</button>
-        `).join('');
-
+        let tabsBtnHtml = d.tabs.map((tab, i) => \`<button class="tab-btn \${i===0?'active':''}" onclick="switchTab('tab-\${i}', this)">\${tab.tabName}</button>\`).join('');
         let tabsContentHtml = d.tabs.map((tab, i) => {
-            let imgHtml = tab.imageUrl ? `<img src="${tab.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="탭 이미지">` : '';
-            return `
-            <div id="tab-${i}" class="section tab-content ${i===0?'active':''}">
-                <div class="card">
-                    <h2 style="font-size: 18px; margin-bottom: 10px;">${tab.title}</h2>
-                    <div class="quote-box" style="font-size:13px; text-align:left;">"${tab.quote}"</div>
-                    ${imgHtml}
-                    <p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(tab.text)}</p>
-                    <div class="link-list">${renderLinks(tab.links)}</div>
-                </div>
-            </div>
-            `;
+            let imgHtml = tab.imageUrl ? \`<img src="\${tab.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="탭 이미지">\` : '';
+            return \`<div id="tab-\${i}" class="section tab-content \${i===0?'active':''}"><div class="card"><h2 style="font-size: 18px; margin-bottom: 10px;">\${tab.title}</h2><div class="quote-box" style="font-size:13px; text-align:left;">"\${tab.quote}"</div>\${imgHtml}<p style="font-size: 14px; color: #555; line-height: 1.6;">\${formatTextToBr(tab.text)}</p><div class="link-list">\${renderLinks(tab.links)}</div></div></div>\`;
         }).join('');
 
-        appEl.innerHTML = `
-            <div class="header" style="padding-bottom: 0;">
-                <h1 style="color:var(--accent);">${d.top.title}</h1>
-                <div class="quote-box">"${d.top.quote}"</div>
-                <p style="color:#666;">${formatTextToBr(d.top.text)}</p>
-            </div>
-            <div class="tabs-container">${tabsBtnHtml}</div>
-            ${tabsContentHtml}
-            <div class="section" style="padding-top:0;">
-                <div class="card" style="border-color: var(--accent);">
-                    <h2 style="font-size: 18px; margin-bottom: 10px; color:var(--accent);">${d.footer.title}</h2>
-                    <div class="quote-box" style="font-size:13px; text-align:left;">"${d.footer.quote}"</div>
-                    <p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(d.footer.text)}</p>
-                </div>
-            </div>
-            <br/><br/>
-        `;
+        appEl.innerHTML = \`
+            <div class="header" style="padding-bottom: 0;"><h1 style="color:var(--accent);">\${d.top.title}</h1><div class="quote-box">"\${d.top.quote}"</div><p style="color:#666;">\${formatTextToBr(d.top.text)}</p></div>
+            <div class="tabs-container">\${tabsBtnHtml}</div>\${tabsContentHtml}
+            <div class="section" style="padding-top:0;"><div class="card" style="border-color: var(--accent);"><h2 style="font-size: 18px; margin-bottom: 10px; color:var(--accent);">\${d.footer.title}</h2><div class="quote-box" style="font-size:13px; text-align:left;">"\${d.footer.quote}"</div><p style="font-size: 14px; color: #555; line-height: 1.6;">\${formatTextToBr(d.footer.text)}</p></div></div><br/><br/>\`;
     }
 
     window.switchTab = function(tabId, btnEl) {
@@ -521,273 +351,176 @@
     /* ==========================================
        6. 관리자 패널 로직
        ========================================== */
-    window.arrMove = function(path, index, direction) {
-        let arr = getVal(path);
-        if (direction === -1 && index > 0) {
-            [arr[index-1], arr[index]] = [arr[index], arr[index-1]];
-        } else if (direction === 1 && index < arr.length - 1) {
-            [arr[index+1], arr[index]] = [arr[index], arr[index+1]];
-        }
+    window.syncInputsBeforeAction = function() {
+        document.querySelectorAll('.admin-input, input[type="text"], textarea, select').forEach(el => {
+            const pathMatch = el.getAttribute('oninput')?.match(/'([^']+)'/);
+            if(pathMatch) setVal(pathMatch[1], el.value);
+        });
+    }
+
+    window.openModal = function(id) { document.getElementById(id).classList.add('active'); }
+    window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); }
+    window.selectBlockType = function(btn, type) {
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('addBlockType').value = type;
+    }
+
+    window.showAddProfileModal = function() {
+        document.getElementById('addProfileId').value = '';
+        document.getElementById('addProfileName').value = '';
+        document.getElementById('addProfileType').value = '1';
+        openModal('modalAddProfile');
+    }
+    window.confirmAddProfile = function() {
+        const pId = document.getElementById('addProfileId').value.trim();
+        const pName = document.getElementById('addProfileName').value.trim();
+        const pType = document.getElementById('addProfileType').value;
+
+        if(!pId) return alert('접속 주소를 입력해주세요.');
+        if(appData.profileList.some(p => p.id === pId)) return alert('이미 존재하는 접속 주소입니다.');
+
+        let newProfile = { id: pId, type: pType === '1' ? 'type1' : 'type2', title: pName || pId, data: null };
+        if (pType === '1') newProfile.data = JSON.parse(JSON.stringify(defaultData.profileList[0].data));
+        else newProfile.data = JSON.parse(JSON.stringify(defaultData.profileList[1].data));
+
+        syncInputsBeforeAction();
+        appData.profileList.push(newProfile);
+        currentAdminTabIdx = appData.profileList.length - 1;
+        closeModal('modalAddProfile');
         renderAdmin();
     }
+
+    window.deleteProfile = function(idx) {
+        if(appData.profileList.length <= 1) return alert("최소 1개의 프로필은 유지해야 합니다.");
+        if(confirm(\`정말로 이 프로필을 완전히 삭제하시겠습니까?\`)) {
+            syncInputsBeforeAction();
+            appData.profileList.splice(idx, 1);
+            currentAdminTabIdx = 0;
+            renderAdmin();
+        }
+    }
+
     window.arrDel = function(path, index) {
         if(confirm('정말 삭제하시겠습니까?')) {
+            syncInputsBeforeAction();
             let arr = getVal(path);
             arr.splice(index, 1);
             renderAdmin();
         }
     }
     
-    // Type 1 관리자 함수
-    window.addContact = function(pKey) {
-        appData.profiles[pKey].data.contacts.push({ icon: "🔗", label: "새 링크", link: "#" });
-        renderAdmin();
+    window.addContact = function(pIdx) { syncInputsBeforeAction(); appData.profileList[pIdx].data.contacts.push({ icon: "🔗", label: "새 링크", link: "#" }); renderAdmin(); }
+    window.addAccordion = function(pIdx) { syncInputsBeforeAction(); appData.profileList[pIdx].data.accordions.push({ title: "새 카테고리 (대제목)", blocks: [] }); renderAdmin(); }
+    window.showAddBlockModal = function(pIdx, accIdx) {
+        document.getElementById('addBlockPIdx').value = pIdx;
+        document.getElementById('addBlockAccIdx').value = accIdx;
+        openModal('modalAddBlock');
     }
-    window.addAccordion = function(pKey) {
-        appData.profiles[pKey].data.accordions.push({ title: "새 카테고리 (대제목)", blocks: [] });
-        renderAdmin();
-    }
-    window.addBlock = function(pKey, accIndex) {
-        const type = prompt("추가할 내용의 형식을 영어로 입력하세요.\n(text = 일반텍스트, list = 글머리목록, button = 링크버튼, image = 이미지)", "text");
-        if(['text', 'list', 'button', 'image'].includes(type)) {
-            appData.profiles[pKey].data.accordions[accIndex].blocks.push({ type: type, title: type==='button'?'버튼명':(type==='image'?'이미지설명(선택)':'소제목(선택)'), content: type==='image'?"이미지URL을넣으세요":"내용" });
-            renderAdmin();
-        } else if (type !== null) {
-            alert('text, list, button, image 중 하나만 입력 가능합니다.');
-        }
-    }
-    
-    // Type 2 관리자 함수
-    window.addTabContent = function(pKey) {
-        appData.profiles[pKey].data.tabs.push({
-            tabName: "새 탭 버튼", title: "섹션 제목", quote: "인용구", imageUrl: "", text: "본문 내용", links: "버튼명|#"
+    window.confirmAddBlock = function() {
+        const pIdx = document.getElementById('addBlockPIdx').value;
+        const accIdx = document.getElementById('addBlockAccIdx').value;
+        const type = document.getElementById('addBlockType').value;
+        
+        syncInputsBeforeAction();
+        appData.profileList[pIdx].data.accordions[accIdx].blocks.push({ 
+            type: type, 
+            title: type==='button'?'버튼명':(type==='image'?'이미지설명(선택)':'소제목(선택)'), 
+            content: type==='image'?"이미지URL주소를넣으세요":"내용을 입력하세요" 
         });
+        closeModal('modalAddBlock');
         renderAdmin();
     }
-
-    // 새 프로필 추가
-    window.addNewProfile = function() {
-        const pId = prompt("새 프로필의 고유 주소(영문/숫자)를 입력하세요.\n예: my_profile (접속시 #my_profile 로 접속됨)");
-        if (!pId) return;
-        if (appData.profiles[pId]) { alert("이미 존재하는 주소입니다."); return; }
-        
-        const pType = prompt("어떤 테마로 만드시겠습니까?\n1 입력: 기본 목록형(프로필1 스타일)\n2 입력: 탭 형식(프로필2 스타일)", "1");
-        const pName = prompt("관리자 페이지에 표시될 프로필 이름을 입력하세요.", "새 프로필");
-        
-        if (pType === '1') {
-            appData.profiles[pId] = { type: 'type1', title: pName || pId, data: JSON.parse(JSON.stringify(defaultData.profiles.star_bodre.data)) };
-        } else if (pType === '2') {
-            appData.profiles[pId] = { type: 'type2', title: pName || pId, data: JSON.parse(JSON.stringify(defaultData.profiles.Copper_CEO.data)) };
-        } else {
-            alert("1 또는 2만 입력 가능합니다.");
-            return;
-        }
-        
-        currentAdminTab = pId;
-        renderAdmin();
-    }
-    
-    // 프로필 삭제
-    window.deleteProfile = function(pKey) {
-        if(Object.keys(appData.profiles).length <= 1) {
-            alert("최소 1개의 프로필은 유지해야 합니다.");
-            return;
-        }
-        if(confirm(`정말로 '${appData.profiles[pKey].title}' 프로필을 완전히 삭제하시겠습니까?`)) {
-            delete appData.profiles[pKey];
-            currentAdminTab = Object.keys(appData.profiles)[0];
-            renderAdmin();
-        }
-    }
+    window.addTabContent = function(pIdx) { syncInputsBeforeAction(); appData.profileList[pIdx].data.tabs.push({ tabName: "새 탭 버튼", title: "섹션 제목", quote: "인용구", imageUrl: "", text: "본문 내용", links: "버튼명|#" }); renderAdmin(); }
 
     function renderAdmin() {
         document.body.className = 'theme-admin';
-
         if (!isAdminAuthenticated) {
-            appEl.innerHTML = `
-                <div class="admin-login">
-                    <h2>관리자 로그인</h2>
-                    <p style="margin-bottom:20px; color:#666;">비밀번호를 입력하세요.</p>
-                    <input type="password" id="adminPwd" placeholder="비밀번호">
-                    <button class="btn" onclick="checkPwd()">로그인</button>
-                </div>
-            `;
+            appEl.innerHTML = \`<div class="admin-login"><h2>관리자 로그인</h2><p style="margin-bottom:20px; color:#666;">비밀번호를 입력하세요.</p><input type="password" id="adminPwd" placeholder="비밀번호"><button class="btn" onclick="checkPwd()">로그인</button></div>\`;
             return;
         }
 
-        // 프로필 탭 (접기 대신 탭 형식 전환)
-        let tabsHtml = `<div class="admin-tabs-row">`;
-        for (let key in appData.profiles) {
-            let activeCls = (currentAdminTab === key) ? 'active' : 'inactive';
-            tabsHtml += `<button class="${activeCls}" onclick="currentAdminTab='${key}'; renderAdmin()">${appData.profiles[key].title}</button>`;
-        }
-        tabsHtml += `<button class="add-btn" onclick="addNewProfile()">+ 새 프로필 추가</button>`;
-        tabsHtml += `</div>`;
+        let tabsHtml = \`<div class="admin-tabs-row" id="sortable-profiles">\`;
+        appData.profileList.forEach((p, idx) => {
+            let activeCls = (currentAdminTabIdx === idx) ? 'active' : 'inactive';
+            tabsHtml += \`<button class="\${activeCls} sortable-profile-item" data-idx="\${idx}" onclick="syncInputsBeforeAction(); currentAdminTabIdx=\${idx}; renderAdmin()"><span class="drag-handle" style="color: \${activeCls==='active'?'#fff':'#999'};">☰</span> \${p.title}</button>\`;
+        });
+        tabsHtml += \`</div><button class="btn-add" onclick="showAddProfileModal()" style="margin-bottom:20px; background:#333; color:#fff; border:none; padding:12px; font-size:14px;">+ 새 프로필 만들기</button>\`;
 
         let contentHtml = '';
-        let pKey = currentAdminTab;
-        if (appData.profiles[pKey]) {
-            let p = appData.profiles[pKey];
-            contentHtml = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                    <h3 style="color:#333; margin:0;">${p.title} <span style="font-size:13px; color:#888; font-weight:normal;">(접속주소: #${pKey})</span></h3>
-                    <button class="del" onclick="deleteProfile('${pKey}')" style="background:#ff4d4f; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:13px;">이 프로필 삭제</button>
-                </div>
-            `;
-            
-            if (p.type === 'type1') {
-                contentHtml += renderAdminType1(pKey, p.data);
-            } else if (p.type === 'type2') {
-                contentHtml += renderAdminType2(pKey, p.data);
-            }
+        if (appData.profileList[currentAdminTabIdx]) {
+            let p = appData.profileList[currentAdminTabIdx];
+            contentHtml = \`<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;"><h3 style="color:#333; margin:0;">\${p.title} <span style="font-size:13px; color:#888; font-weight:normal;">(접속주소: #\${p.id})</span></h3><button class="del" onclick="deleteProfile(\${currentAdminTabIdx})" style="background:#ff4d4f; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:13px;">이 프로필 삭제</button></div>\`;
+            if (p.type === 'type1') contentHtml += renderAdminType1(currentAdminTabIdx, p.data);
+            else if (p.type === 'type2') contentHtml += renderAdminType2(currentAdminTabIdx, p.data);
         }
 
-        appEl.innerHTML = `
-            <div class="header" style="padding-bottom:10px;">
-                <h1 style="color:var(--accent);">관리자 패널</h1>
-                <p>상단의 탭을 선택하여 각 프로필을 관리하세요.</p>
-            </div>
-            <div class="section">
-                ${tabsHtml}
-                ${contentHtml}
-                <div style="position: sticky; bottom: 20px; z-index: 100; margin-top:30px;">
-                    <button class="btn" onclick="saveDataFinal(this)" style="font-size:16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">💾 서버에 영구 저장하기</button>
-                </div>
-                <button class="btn btn-outline" onclick="resetDefaultData()" style="margin-top:20px; color:#d32f2f; border-color:#d32f2f;">DB 완전 초기화</button>
-            </div>
-            <br/><br/>
-        `;
+        appEl.innerHTML = \`<div class="header" style="padding-bottom:10px;"><h1 style="color:var(--accent);">관리자 패널</h1><p>항목 앞의 <b>☰ 아이콘</b>을 드래그하여 순서를 자유롭게 변경하세요.</p></div><div class="section">\${tabsHtml}\${contentHtml}<div style="position: sticky; bottom: 20px; z-index: 100; margin-top:30px;"><button class="btn" onclick="saveDataFinal(this)" style="font-size:16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">💾 서버에 영구 저장하기</button></div><button class="btn btn-outline" onclick="resetDefaultData()" style="margin-top:20px; color:#d32f2f; border-color:#d32f2f;">DB 완전 초기화</button></div><br/><br/>\`;
+
+        setTimeout(initSortables, 50);
     }
 
-    function renderAdminType1(pKey, d) {
-        let html = `
-            <div class="admin-group open">
-                <div class="admin-group-header" style="background:#f1f5f9; color:#333;">🌟 기본 정보 및 연락처</div>
-                <div class="admin-group-body">
-                    <div class="admin-form-group"><label>이름</label><input type="text" value="${d.name}" oninput="setVal('profiles.${pKey}.data.name', this.value)"></div>
-                    <div class="admin-form-group"><label>타이틀/부제목</label><input type="text" value="${d.subtitle}" oninput="setVal('profiles.${pKey}.data.subtitle', this.value)"></div>
-                    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/>
-                    <h4 style="margin-bottom:10px;">연락처 및 SNS 링크 목록</h4>
-        `;
+    function renderAdminType1(pIdx, d) {
+        let html = \`<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">🌟 기본 정보 및 연락처</div><div class="admin-group-body"><div class="admin-form-group"><label>이름</label><input type="text" value="\${d.name}" oninput="setVal('profileList.\${pIdx}.data.name', this.value)"></div><div class="admin-form-group"><label>타이틀/부제목</label><input type="text" value="\${d.subtitle}" oninput="setVal('profileList.\${pIdx}.data.subtitle', this.value)"></div><hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/><h4 style="margin-bottom:10px;">연락처 및 SNS 링크 목록</h4><div id="sortable-contacts-\${pIdx}">\`;
         d.contacts.forEach((c, i) => {
-            html += `
-                <div class="admin-list-item">
-                    <div class="admin-controls">
-                        <button onclick="arrMove('profiles.${pKey}.data.contacts', ${i}, -1)">▲ 위로</button>
-                        <button onclick="arrMove('profiles.${pKey}.data.contacts', ${i}, 1)">▼ 아래로</button>
-                        <button class="del" onclick="arrDel('profiles.${pKey}.data.contacts', ${i})">삭제</button>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" style="width:60px;" placeholder="아이콘" value="${c.icon}" oninput="setVal('profiles.${pKey}.data.contacts.${i}.icon', this.value)">
-                        <input type="text" style="width:90px;" placeholder="라벨명" value="${c.label}" oninput="setVal('profiles.${pKey}.data.contacts.${i}.label', this.value)">
-                        <input type="text" style="flex:1;" placeholder="URL 링크" value="${c.link}" oninput="setVal('profiles.${pKey}.data.contacts.${i}.link', this.value)">
-                    </div>
-                </div>
-            `;
+            html += \`<div class="admin-list-item sortable-contact-item" data-idx="\${i}"><div class="admin-controls"><span class="drag-handle">☰ 드래그</span><button class="del" onclick="arrDel('profileList.\${pIdx}.data.contacts', \${i})">삭제</button></div><div style="display:flex; gap:10px;"><input type="text" style="width:60px;" placeholder="아이콘" value="\${c.icon}" oninput="setVal('profileList.\${pIdx}.data.contacts.\${i}.icon', this.value)"><input type="text" style="width:90px;" placeholder="라벨명" value="\${c.label}" oninput="setVal('profileList.\${pIdx}.data.contacts.\${i}.label', this.value)"><input type="text" style="flex:1;" placeholder="URL 링크" value="\${c.link}" oninput="setVal('profileList.\${pIdx}.data.contacts.\${i}.link', this.value)"></div></div>\`;
         });
-        html += `<button class="btn-add" onclick="addContact('${pKey}')">+ 연락처/SNS 아이콘 추가</button></div></div>`;
-
-        html += `
-            <div class="admin-group open">
-                <div class="admin-group-header" style="background:#f1f5f9; color:#333;">📂 카테고리 및 패널 내용 수정</div>
-                <div class="admin-group-body">
-        `;
+        html += \`</div><button class="btn-add" onclick="addContact(\${pIdx})">+ 연락처/SNS 아이콘 추가</button></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">📂 카테고리 및 패널 내용 수정</div><div class="admin-group-body"><div id="sortable-accordions-\${pIdx}">\`;
         d.accordions.forEach((acc, i) => {
-            html += `
-                <div class="admin-list-item" style="border-color:#aaa; background:#fff;">
-                    <div class="admin-controls">
-                        <span style="margin-right:auto; font-weight:bold; color:#0066cc;">[카테고리 대제목 블록]</span>
-                        <button onclick="arrMove('profiles.${pKey}.data.accordions', ${i}, -1)">▲ 위로</button>
-                        <button onclick="arrMove('profiles.${pKey}.data.accordions', ${i}, 1)">▼ 아래로</button>
-                        <button class="del" onclick="arrDel('profiles.${pKey}.data.accordions', ${i})">카테고리 삭제</button>
-                    </div>
-                    <div class="admin-form-group">
-                        <label>카테고리 대제목</label>
-                        <input type="text" value="${acc.title}" oninput="setVal('profiles.${pKey}.data.accordions.${i}.title', this.value)">
-                    </div>
-                    <div style="padding:10px; background:#f5f7fa; border-radius:8px; margin-top:15px; border:1px solid #e1e4e8;">
-                        <label style="font-size:13px; font-weight:bold; margin-bottom:10px; display:block; color:#444;">내부 상세 내용 (패널)</label>
-            `;
+            html += \`<div class="admin-list-item sortable-accordion-item" style="border-color:#aaa; background:#fff;" data-idx="\${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">[카테고리]</div><button class="del" onclick="arrDel('profileList.\${pIdx}.data.accordions', \${i})">카테고리 삭제</button></div><div class="admin-form-group"><label>카테고리 대제목</label><input type="text" value="\${acc.title}" oninput="setVal('profileList.\${pIdx}.data.accordions.\${i}.title', this.value)"></div><div style="padding:10px; background:#f5f7fa; border-radius:8px; margin-top:15px; border:1px solid #e1e4e8;"><label style="font-size:13px; font-weight:bold; margin-bottom:10px; display:block; color:#444;">내부 상세 내용 (패널)</label><div id="sortable-blocks-\${pIdx}-\${i}">\`;
             acc.blocks.forEach((block, bIdx) => {
-                const typeName = block.type === 'button' ? '버튼' : (block.type === 'list' ? '목록형' : (block.type === 'image' ? '이미지' : '일반텍스트'));
-                html += `
-                    <div class="admin-list-item" style="background:#fff; border-color:#dcdcdc;">
-                        <div class="admin-controls">
-                            <span style="margin-right:auto; font-size:11px; background:#e1e1e1; padding:3px 6px; border-radius:4px; font-weight:bold;">${typeName}</span>
-                            <button onclick="arrMove('profiles.${pKey}.data.accordions.${i}.blocks', ${bIdx}, -1)">위로</button>
-                            <button onclick="arrMove('profiles.${pKey}.data.accordions.${i}.blocks', ${bIdx}, 1)">아래로</button>
-                            <button class="del" onclick="arrDel('profiles.${pKey}.data.accordions.${i}.blocks', ${bIdx})">삭제</button>
-                        </div>
-                        <div class="admin-form-group">
-                            <label>${block.type==='button'?'버튼에 쓰일 글자':(block.type==='image'?'이미지 설명(선택)':'소제목(선택)')}</label>
-                            <input type="text" value="${block.title}" oninput="setVal('profiles.${pKey}.data.accordions.${i}.blocks.${bIdx}.title', this.value)">
-                        </div>
-                        <div class="admin-form-group">
-                            <label>${block.type==='button'?'이동할 URL 주소':(block.type==='image'?'이미지 URL (http://...)':'본문 내용')}</label>
-                            ${(block.type==='button' || block.type==='image') 
-                                ? `<input type="text" value="${block.content}" oninput="setVal('profiles.${pKey}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">`
-                                : `<textarea oninput="setVal('profiles.${pKey}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">${block.content}</textarea>`
-                            }
-                        </div>
-                    </div>
-                `;
+                const typeName = block.type === 'button' ? '버튼' : (block.type === 'list' ? '목록형' : (block.type === 'image' ? '이미지' : '텍스트'));
+                html += \`<div class="admin-list-item sortable-block-item" style="background:#fff; border-color:#dcdcdc;" data-idx="\${bIdx}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">\${typeName}</div><button class="del" onclick="arrDel('profileList.\${pIdx}.data.accordions.\${i}.blocks', \${bIdx})">삭제</button></div><div class="admin-form-group"><label>\${block.type==='button'?'버튼에 쓰일 글자':(block.type==='image'?'이미지 설명(선택)':'소제목(선택)')}</label><input type="text" value="\${block.title}" oninput="setVal('profileList.\${pIdx}.data.accordions.\${i}.blocks.\${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>\${block.type==='button'?'이동할 URL 주소':(block.type==='image'?'이미지 URL (http://...)':'본문 내용')}</label>\${(block.type==='button' || block.type==='image') ? \`<input type="text" value="\${block.content}" oninput="setVal('profileList.\${pIdx}.data.accordions.\${i}.blocks.\${bIdx}.content', this.value)">\` : \`<textarea oninput="setVal('profileList.\${pIdx}.data.accordions.\${i}.blocks.\${bIdx}.content', this.value)">\${block.content}</textarea>\`}</div></div>\`;
             });
-            html += `
-                        <button class="btn-add" style="background:#fff;" onclick="addBlock('${pKey}', ${i})">+ 이 카테고리 안에 내용/이미지 추가</button>
-                    </div>
-                </div>
-            `;
+            html += \`</div><button class="btn-add" style="background:#fff;" onclick="showAddBlockModal(\${pIdx}, \${i})">+ 패널 내용/이미지 추가</button></div></div>\`;
         });
-        html += `<button class="btn" style="background:#333;" onclick="addAccordion('${pKey}')">+ 완전히 새로운 카테고리 추가</button></div></div>`;
+        html += \`</div><button class="btn" style="background:#333; margin-top:15px;" onclick="addAccordion(\${pIdx})">+ 새로운 카테고리 추가</button></div></div>\`;
         return html;
     }
 
-    function renderAdminType2(pKey, d) {
-        let html = `
-            <div class="admin-group open">
-                <div class="admin-group-header" style="background:#f1f5f9; color:#333;">💼 상/하단 고정 영역 수정</div>
-                <div class="admin-group-body">
-                    <h4 style="margin-bottom:10px;">상단 고정 영역</h4>
-                    <div class="admin-form-group"><label>대제목</label><input type="text" value="${d.top.title}" oninput="setVal('profiles.${pKey}.data.top.title', this.value)"></div>
-                    <div class="admin-form-group"><label>인용구 (기울임 꼴)</label><input type="text" value="${d.top.quote}" oninput="setVal('profiles.${pKey}.data.top.quote', this.value)"></div>
-                    <div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profiles.${pKey}.data.top.text', this.value)">${d.top.text}</textarea></div>
-                    
-                    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/>
-                    <h4 style="margin-bottom:10px;">하단 고정 영역</h4>
-                    <div class="admin-form-group"><label>제목</label><input type="text" value="${d.footer.title}" oninput="setVal('profiles.${pKey}.data.footer.title', this.value)"></div>
-                    <div class="admin-form-group"><label>인용구</label><input type="text" value="${d.footer.quote}" oninput="setVal('profiles.${pKey}.data.footer.quote', this.value)"></div>
-                    <div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profiles.${pKey}.data.footer.text', this.value)">${d.footer.text}</textarea></div>
-                </div>
-            </div>
-            
-            <div class="admin-group open">
-                <div class="admin-group-header" style="background:#f1f5f9; color:#333;">중앙 탭 영역 관리 (내용 및 이미지)</div>
-                <div class="admin-group-body">
-        `;
+    function renderAdminType2(pIdx, d) {
+        let html = \`<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">💼 상/하단 고정 영역 수정</div><div class="admin-group-body"><h4 style="margin-bottom:10px;">상단 고정 영역</h4><div class="admin-form-group"><label>대제목</label><input type="text" value="\${d.top.title}" oninput="setVal('profileList.\${pIdx}.data.top.title', this.value)"></div><div class="admin-form-group"><label>인용구 (기울임 꼴)</label><input type="text" value="\${d.top.quote}" oninput="setVal('profileList.\${pIdx}.data.top.quote', this.value)"></div><div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profileList.\${pIdx}.data.top.text', this.value)">\${d.top.text}</textarea></div><hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/><h4 style="margin-bottom:10px;">하단 고정 영역</h4><div class="admin-form-group"><label>제목</label><input type="text" value="\${d.footer.title}" oninput="setVal('profileList.\${pIdx}.data.footer.title', this.value)"></div><div class="admin-form-group"><label>인용구</label><input type="text" value="\${d.footer.quote}" oninput="setVal('profileList.\${pIdx}.data.footer.quote', this.value)"></div><div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profileList.\${pIdx}.data.footer.text', this.value)">\${d.footer.text}</textarea></div></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">중앙 탭 영역 관리 (내용 및 이미지)</div><div class="admin-group-body"><div id="sortable-tabs-\${pIdx}">\`;
         d.tabs.forEach((tab, i) => {
-            html += `
-                <div class="admin-list-item" style="border-color:#b5815e;">
-                    <div class="admin-controls">
-                        <span style="margin-right:auto; font-weight:bold; color:#b5815e;">탭 콘텐츠 ${i+1}</span>
-                        <button onclick="arrMove('profiles.${pKey}.data.tabs', ${i}, -1)">▲ 위로</button>
-                        <button onclick="arrMove('profiles.${pKey}.data.tabs', ${i}, 1)">▼ 아래로</button>
-                        <button class="del" onclick="arrDel('profiles.${pKey}.data.tabs', ${i})">이 탭 삭제</button>
-                    </div>
-                    <div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('profiles.${pKey}.data.tabs.${i}.tabName', this.value)"></div>
-                    <div class="admin-form-group"><label>내용 대제목</label><input type="text" value="${tab.title}" oninput="setVal('profiles.${pKey}.data.tabs.${i}.title', this.value)"></div>
-                    <div class="admin-form-group"><label>내용 인용구</label><input type="text" value="${tab.quote}" oninput="setVal('profiles.${pKey}.data.tabs.${i}.quote', this.value)"></div>
-                    <div class="admin-form-group"><label>패널 이미지 주소 (선택, http://...)</label><input type="text" value="${tab.imageUrl || ''}" oninput="setVal('profiles.${pKey}.data.tabs.${i}.imageUrl', this.value)"></div>
-                    <div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profiles.${pKey}.data.tabs.${i}.text', this.value)">${tab.text}</textarea></div>
-                    <div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태로 줄바꿈 기입)</label><textarea oninput="setVal('profiles.${pKey}.data.tabs.${i}.links', this.value)">${tab.links}</textarea></div>
-                </div>
-            `;
+            html += \`<div class="admin-list-item sortable-tab-item" style="border-color:#b5815e;" data-idx="\${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">탭 콘텐츠 \${i+1}</div><button class="del" onclick="arrDel('profileList.\${pIdx}.data.tabs', \${i})">이 탭 삭제</button></div><div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="\${tab.tabName}" oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.tabName', this.value)"></div><div class="admin-form-group"><label>내용 대제목</label><input type="text" value="\${tab.title}" oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구</label><input type="text" value="\${tab.quote}" oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 주소 (선택, http://...)</label><input type="text" value="\${tab.imageUrl || ''}" oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.imageUrl', this.value)"></div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.text', this.value)">\${tab.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태로 줄바꿈 기입)</label><textarea oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.links', this.value)">\${tab.links}</textarea></div></div>\`;
         });
-        html += `
-                    <button class="btn-add" onclick="addTabContent('${pKey}')">+ 새 탭 콘텐츠 추가</button>
-                </div>
-            </div>
-        `;
+        html += \`</div><button class="btn-add" style="margin-top:15px;" onclick="addTabContent(\${pIdx})">+ 새 탭 콘텐츠 추가</button></div></div>\`;
         return html;
+    }
+
+    function initSortables() {
+        if(typeof Sortable === 'undefined') return setTimeout(initSortables, 100);
+        const updateArray = (arrPath, oldIdx, newIdx) => {
+            syncInputsBeforeAction();
+            let arr = getVal(arrPath);
+            const item = arr.splice(oldIdx, 1)[0];
+            arr.splice(newIdx, 0, item);
+            if(arrPath === 'profileList') currentAdminTabIdx = newIdx; 
+            renderAdmin(); 
+        };
+
+        const profilesEl = document.getElementById('sortable-profiles');
+        if(profilesEl) Sortable.create(profilesEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray('profileList', e.oldIndex, e.newIndex) });
+
+        const pIdx = currentAdminTabIdx;
+        const p = appData.profileList[pIdx];
+        if(!p) return;
+
+        if (p.type === 'type1') {
+            const contactsEl = document.getElementById(\`sortable-contacts-\${pIdx}\`);
+            if(contactsEl) Sortable.create(contactsEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(\`profileList.\${pIdx}.data.contacts\`, e.oldIndex, e.newIndex) });
+
+            const accordionsEl = document.getElementById(\`sortable-accordions-\${pIdx}\`);
+            if(accordionsEl) {
+                Sortable.create(accordionsEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(\`profileList.\${pIdx}.data.accordions\`, e.oldIndex, e.newIndex) });
+                p.data.accordions.forEach((_, aIdx) => {
+                    const blocksEl = document.getElementById(\`sortable-blocks-\${pIdx}-\${aIdx}\`);
+                    if(blocksEl) Sortable.create(blocksEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(\`profileList.\${pIdx}.data.accordions.\${aIdx}.blocks\`, e.oldIndex, e.newIndex) });
+                });
+            }
+        } else if (p.type === 'type2') {
+            const tabsEl = document.getElementById(\`sortable-tabs-\${pIdx}\`);
+            if(tabsEl) Sortable.create(tabsEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(\`profileList.\${pIdx}.data.tabs\`, e.oldIndex, e.newIndex) });
+        }
     }
 
     window.checkPwd = function() {
@@ -797,17 +530,11 @@
     };
 
     window.saveDataFinal = async function(btnEl) {
-        document.querySelectorAll('.admin-input, input[type="text"], textarea').forEach(el => {
-            const pathMatch = el.getAttribute('oninput')?.match(/'([^']+)'/);
-            if(pathMatch) setVal(pathMatch[1], el.value);
-        });
-
+        syncInputsBeforeAction();
         const originalText = btnEl.innerText;
         btnEl.innerText = "⏳ 통신 중...";
         btnEl.disabled = true;
-
         await saveToSupabase(appData, true); 
-
         btnEl.innerText = originalText;
         btnEl.disabled = false;
     };
@@ -821,40 +548,29 @@
         }
     };
 
-    /* ==========================================
-       7. 라우팅 로직 (Hash Router)
-       ========================================== */
     function router() {
         if (!appData) return; 
-
         const hash = window.location.hash.substring(1);
-        
         appEl.style.opacity = '0';
-        
         setTimeout(() => {
-            if (hash === 'admin') {
-                renderAdmin();
-            } else if (!hash) {
-                renderIndex();
-            } else if (appData.profiles && appData.profiles[hash]) {
-                const p = appData.profiles[hash];
-                if (p.type === 'type1') renderType1(p.data);
-                else if (p.type === 'type2') renderType2(p.data);
-            } else {
-                renderIndex();
+            if (hash === 'admin') { renderAdmin(); } 
+            else if (!hash) { renderIndex(); } 
+            else {
+                const found = appData.profileList.find(p => p.id === hash);
+                if (found) {
+                    if (found.type === 'type1') renderType1(found.data);
+                    else if (found.type === 'type2') renderType2(found.data);
+                } else { renderIndex(); }
             }
-            
             appEl.style.opacity = '1';
             window.scrollTo(0, 0);
         }, 50); 
     }
 
-    window.goToHash = function(hashName) {
-        window.location.hash = hashName;
-        router();
-    };
-
+    window.goToHash = function(hashName) { window.location.hash = hashName; router(); };
     window.addEventListener('hashchange', router);
     window.addEventListener('DOMContentLoaded', initApp);
 
 </script>
+</body>
+</html>
