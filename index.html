@@ -247,13 +247,13 @@
     let currentAdminTabIdx = 0;
     const appEl = document.getElementById('app');
 
-    function textToListHtml(text) { if(!text) return ''; return text.split('\\n').filter(t => t.trim() !== '').map(item => \`<li>\${item}</li>\`).join(''); }
-    function formatTextToBr(text) { if(!text) return ''; return text.replace(/\\n/g, '<br/>'); }
+    function textToListHtml(text) { if(!text) return ''; return text.split('\n').filter(t => t.trim() !== '').map(item => `<li>${item}</li>`).join(''); }
+    function formatTextToBr(text) { if(!text) return ''; return text.replace(/\n/g, '<br/>'); }
     function getVal(path) { return path.split('.').reduce((acc, part) => acc && acc[part], appData); }
     function setVal(path, value) { const parts = path.split('.'); const last = parts.pop(); const target = parts.reduce((acc, part) => acc[part], appData); target[last] = value; }
 
     async function initApp() {
-        appEl.innerHTML = \`<div class="index-screen"><h1 style="font-size:22px; margin-bottom:12px; color:#111;">데이터 로딩 중...</h1><p style="font-size:15px; color:#666;">Supabase 서버에서 정보를 가져오고 있습니다 ⏳</p></div>\`;
+        appEl.innerHTML = `<div class="index-screen"><h1 style="font-size:22px; margin-bottom:12px; color:#111;">데이터 로딩 중...</h1><p style="font-size:15px; color:#666;">Supabase 서버에서 정보를 가져오고 있습니다 ⏳</p></div>`;
         try {
             const { data, error } = await supabaseClient.from('profile_settings').select('data').eq('id', 1).single();
             if (error) throw error;
@@ -307,11 +307,11 @@
         if(appData && appData.profileList && appData.profileList.length > 0) {
             appData.profileList.forEach(p => {
                 const color = p.type === 'type1' ? '#ff6b81' : '#b5815e';
-                buttonsHtml += \`<button onclick="goToHash('#\${p.id}')" class="btn" style="background:\${color}; border-radius:12px;">\${p.title} (#\${p.id})</button>\`;
+                buttonsHtml += `<button onclick="goToHash('#${p.id}')" class="btn" style="background:${color}; border-radius:12px;">${p.title} (#${p.id})</button>`;
             });
         }
         
-        appEl.innerHTML = \`
+        appEl.innerHTML = `
             <div class="index-screen">
                 <h1 style="font-size:22px; font-weight:800; margin-bottom:12px; color:#111;">프로필 홈페이지</h1>
                 <p style="font-size:15px; color:#666; line-height:1.5;">
@@ -320,26 +320,26 @@
                 </p>
                 <div style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:280px; margin-top:30px;">
                     <p style="font-size:12px; color:#999; margin-bottom:-5px;">▼ 접속 메뉴</p>
-                    \${buttonsHtml}
+                    ${buttonsHtml}
                     <button onclick="goToHash('#admin')" class="btn" style="background:#333; border-radius:12px; margin-top:10px;">⚙️ 관리자 페이지 (#admin)</button>
                 </div>
             </div>
-        \`;
+        `;
     }
 
     function renderType1(d) {
         document.body.className = 'theme-light';
-        let contactsHtml = d.contacts.map(c => \`<a href="\${c.link}" target="_blank" class="contact-icon"><i>\${c.icon}</i><span>\${c.label}</span></a>\`).join('');
+        let contactsHtml = d.contacts.map(c => `<a href="${c.link}" target="_blank" class="contact-icon"><i>${c.icon}</i><span>${c.label}</span></a>`).join('');
         let accordionsHtml = d.accordions.map(acc => {
             let blocksHtml = acc.blocks.map(b => {
-                if (b.type === 'button') return \`<a href="\${b.content}" target="_blank" class="btn btn-outline" style="margin-bottom:15px; padding:10px;">\${b.title}</a>\`;
-                else if (b.type === 'list') return \`<div class="block-text">\${b.title ? \`<b>\${b.title}</b>\` : ''}<ul class="custom-list">\${textToListHtml(b.content)}</ul></div>\`;
-                else if (b.type === 'image') return \`<div class="block-text">\${b.title ? \`<b style="display:block; margin-bottom:10px;">\${b.title}</b>\` : ''}<img src="\${b.content}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;" alt="이미지"></div>\`;
-                else return \`<div class="block-text">\${b.title ? \`<b>\${b.title}:</b>\` : ''} \${formatTextToBr(b.content)}</div>\`;
+                if (b.type === 'button') return `<a href="${b.content}" target="_blank" class="btn btn-outline" style="margin-bottom:15px; padding:10px;">${b.title}</a>`;
+                else if (b.type === 'list') return `<div class="block-text">${b.title ? `<b>${b.title}</b>` : ''}<ul class="custom-list">${textToListHtml(b.content)}</ul></div>`;
+                else if (b.type === 'image') return `<div class="block-text">${b.title ? `<b style="display:block; margin-bottom:10px;">${b.title}</b>` : ''}<img src="${b.content}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;" alt="이미지"></div>`;
+                else return `<div class="block-text">${b.title ? `<b>${b.title}:</b>` : ''} ${formatTextToBr(b.content)}</div>`;
             }).join('');
-            return \`<div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)"><span>\${acc.title}</span> <span>▼</span></div><div class="accordion-content"><div class="accordion-inner"><div class="accordion-body" style="padding-top:5px;">\${blocksHtml}</div></div></div></div>\`;
+            return `<div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)"><span>${acc.title}</span> <span>▼</span></div><div class="accordion-content"><div class="accordion-inner"><div class="accordion-body" style="padding-top:5px;">${blocksHtml}</div></div></div></div>`;
         }).join('');
-        appEl.innerHTML = \`<div class="header"><h1>\${d.name}</h1><p>\${d.subtitle}</p><div class="contact-grid">\${contactsHtml}</div></div><div class="section">\${accordionsHtml}</div>\`;
+        appEl.innerHTML = `<div class="header"><h1>${d.name}</h1><p>${d.subtitle}</p><div class="contact-grid">${contactsHtml}</div></div><div class="section">${accordionsHtml}</div>`;
     }
 
     window.toggleAccordion = function(el) {
@@ -353,20 +353,20 @@
         document.body.className = 'theme-beige';
         const renderLinks = (linkString) => {
             if(!linkString) return '';
-            return linkString.split('\\n').filter(l => l.trim() !== '').map(item => {
-                const parts = item.split('|'); return \`<a href="\${parts[1] || '#'}" target="_blank" class="btn btn-outline">\${parts[0]}</a>\`;
+            return linkString.split('\n').filter(l => l.trim() !== '').map(item => {
+                const parts = item.split('|'); return `<a href="${parts[1] || '#'}" target="_blank" class="btn btn-outline">${parts[0]}</a>`;
             }).join('');
         };
-        let tabsBtnHtml = d.tabs.map((tab, i) => \`<button class="tab-btn \${i===0?'active':''}" onclick="switchTab('tab-\${i}', this)">\${tab.tabName}</button>\`).join('');
+        let tabsBtnHtml = d.tabs.map((tab, i) => `<button class="tab-btn ${i===0?'active':''}" onclick="switchTab('tab-${i}', this)">${tab.tabName}</button>`).join('');
         let tabsContentHtml = d.tabs.map((tab, i) => {
-            let imgHtml = tab.imageUrl ? \`<img src="\${tab.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="탭 이미지">\` : '';
-            return \`<div id="tab-\${i}" class="section tab-content \${i===0?'active':''}"><div class="card"><h2 style="font-size: 18px; margin-bottom: 10px;">\${tab.title}</h2><div class="quote-box" style="font-size:13px; text-align:left;">"\${tab.quote}"</div>\${imgHtml}<p style="font-size: 14px; color: #555; line-height: 1.6;">\${formatTextToBr(tab.text)}</p><div class="link-list">\${renderLinks(tab.links)}</div></div></div>\`;
+            let imgHtml = tab.imageUrl ? `<img src="${tab.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="탭 이미지">` : '';
+            return `<div id="tab-${i}" class="section tab-content ${i===0?'active':''}"><div class="card"><h2 style="font-size: 18px; margin-bottom: 10px;">${tab.title}</h2><div class="quote-box" style="font-size:13px; text-align:left;">"${tab.quote}"</div>${imgHtml}<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(tab.text)}</p><div class="link-list">${renderLinks(tab.links)}</div></div></div>`;
         }).join('');
 
-        appEl.innerHTML = \`
-            <div class="header" style="padding-bottom: 0;"><h1 style="color:var(--accent);">\${d.top.title}</h1><div class="quote-box">"\${d.top.quote}"</div><p style="color:#666;">\${formatTextToBr(d.top.text)}</p></div>
-            <div class="tabs-container">\${tabsBtnHtml}</div>\${tabsContentHtml}
-            <div class="section" style="padding-top:0;"><div class="card" style="border-color: var(--accent);"><h2 style="font-size: 18px; margin-bottom: 10px; color:var(--accent);">\${d.footer.title}</h2><div class="quote-box" style="font-size:13px; text-align:left;">"\${d.footer.quote}"</div><p style="font-size: 14px; color: #555; line-height: 1.6;">\${formatTextToBr(d.footer.text)}</p></div></div><br/><br/>\`;
+        appEl.innerHTML = `
+            <div class="header" style="padding-bottom: 0;"><h1 style="color:var(--accent);">${d.top.title}</h1><div class="quote-box">"${d.top.quote}"</div><p style="color:#666;">${formatTextToBr(d.top.text)}</p></div>
+            <div class="tabs-container">${tabsBtnHtml}</div>${tabsContentHtml}
+            <div class="section" style="padding-top:0;"><div class="card" style="border-color: var(--accent);"><h2 style="font-size: 18px; margin-bottom: 10px; color:var(--accent);">${d.footer.title}</h2><div class="quote-box" style="font-size:13px; text-align:left;">"${d.footer.quote}"</div><p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(d.footer.text)}</p></div></div><br/><br/>`;
     }
 
     window.switchTab = function(tabId, btnEl) {
@@ -421,7 +421,7 @@
 
     window.deleteProfile = function(idx) {
         if(appData.profileList.length <= 1) return alert("최소 1개의 프로필은 유지해야 합니다.");
-        if(confirm(\`정말로 이 프로필을 완전히 삭제하시겠습니까?\`)) {
+        if(confirm(`정말로 이 프로필을 완전히 삭제하시겠습니까?`)) {
             syncInputsBeforeAction();
             appData.profileList.splice(idx, 1);
             currentAdminTabIdx = 0;
@@ -464,54 +464,54 @@
     function renderAdmin() {
         document.body.className = 'theme-admin';
         if (!isAdminAuthenticated) {
-            appEl.innerHTML = \`<div class="admin-login"><h2>관리자 로그인</h2><p style="margin-bottom:20px; color:#666;">비밀번호를 입력하세요.</p><input type="password" id="adminPwd" placeholder="비밀번호"><button class="btn" onclick="checkPwd()">로그인</button></div>\`;
+            appEl.innerHTML = `<div class="admin-login"><h2>관리자 로그인</h2><p style="margin-bottom:20px; color:#666;">비밀번호를 입력하세요.</p><input type="password" id="adminPwd" placeholder="비밀번호"><button class="btn" onclick="checkPwd()">로그인</button></div>`;
             return;
         }
 
-        let tabsHtml = \`<div class="admin-tabs-row" id="sortable-profiles">\`;
+        let tabsHtml = `<div class="admin-tabs-row" id="sortable-profiles">`;
         appData.profileList.forEach((p, idx) => {
             let activeCls = (currentAdminTabIdx === idx) ? 'active' : 'inactive';
-            tabsHtml += \`<button class="\${activeCls} sortable-profile-item" data-idx="\${idx}" onclick="syncInputsBeforeAction(); currentAdminTabIdx=\${idx}; renderAdmin()"><span class="drag-handle" style="color: \${activeCls==='active'?'#fff':'#999'};">☰</span> \${p.title}</button>\`;
+            tabsHtml += `<button class="${activeCls} sortable-profile-item" data-idx="${idx}" onclick="syncInputsBeforeAction(); currentAdminTabIdx=${idx}; renderAdmin()"><span class="drag-handle" style="color: ${activeCls==='active'?'#fff':'#999'};">☰</span> ${p.title}</button>`;
         });
-        tabsHtml += \`</div><button class="btn-add" onclick="showAddProfileModal()" style="margin-bottom:20px; background:#333; color:#fff; border:none; padding:12px; font-size:14px;">+ 새 프로필 만들기</button>\`;
+        tabsHtml += `</div><button class="btn-add" onclick="showAddProfileModal()" style="margin-bottom:20px; background:#333; color:#fff; border:none; padding:12px; font-size:14px;">+ 새 프로필 만들기</button>`;
 
         let contentHtml = '';
         if (appData.profileList[currentAdminTabIdx]) {
             let p = appData.profileList[currentAdminTabIdx];
-            contentHtml = \`<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;"><h3 style="color:#333; margin:0;">\${p.title} <span style="font-size:13px; color:#888; font-weight:normal;">(접속주소: #\${p.id})</span></h3><button class="del" onclick="deleteProfile(\${currentAdminTabIdx})" style="background:#ff4d4f; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:13px;">이 프로필 삭제</button></div>\`;
+            contentHtml = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;"><h3 style="color:#333; margin:0;">${p.title} <span style="font-size:13px; color:#888; font-weight:normal;">(접속주소: #${p.id})</span></h3><button class="del" onclick="deleteProfile(${currentAdminTabIdx})" style="background:#ff4d4f; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:13px;">이 프로필 삭제</button></div>`;
             if (p.type === 'type1') contentHtml += renderAdminType1(currentAdminTabIdx, p.data);
             else if (p.type === 'type2') contentHtml += renderAdminType2(currentAdminTabIdx, p.data);
         }
 
-        appEl.innerHTML = \`<div class="header" style="padding-bottom:10px;"><h1 style="color:var(--accent);">관리자 패널</h1><p>항목 앞의 <b>☰ 아이콘</b>을 드래그하여 순서를 자유롭게 변경하세요.</p></div><div class="section">\${tabsHtml}\${contentHtml}<div style="position: sticky; bottom: 20px; z-index: 100; margin-top:30px;"><button class="btn" onclick="saveDataFinal(this)" style="font-size:16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">💾 서버에 영구 저장하기</button></div><button class="btn btn-outline" onclick="resetDefaultData()" style="margin-top:20px; color:#d32f2f; border-color:#d32f2f;">DB 완전 초기화</button></div><br/><br/>\`;
+        appEl.innerHTML = `<div class="header" style="padding-bottom:10px;"><h1 style="color:var(--accent);">관리자 패널</h1><p>항목 앞의 <b>☰ 아이콘</b>을 드래그하여 순서를 자유롭게 변경하세요.</p></div><div class="section">${tabsHtml}${contentHtml}<div style="position: sticky; bottom: 20px; z-index: 100; margin-top:30px;"><button class="btn" onclick="saveDataFinal(this)" style="font-size:16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">💾 서버에 영구 저장하기</button></div><button class="btn btn-outline" onclick="resetDefaultData()" style="margin-top:20px; color:#d32f2f; border-color:#d32f2f;">DB 완전 초기화</button></div><br/><br/>`;
 
         setTimeout(initSortables, 50);
     }
 
     function renderAdminType1(pIdx, d) {
-        let html = \`<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">🌟 기본 정보 및 연락처</div><div class="admin-group-body"><div class="admin-form-group"><label>이름</label><input type="text" value="\${d.name}" oninput="setVal('profileList.\${pIdx}.data.name', this.value)"></div><div class="admin-form-group"><label>타이틀/부제목</label><input type="text" value="\${d.subtitle}" oninput="setVal('profileList.\${pIdx}.data.subtitle', this.value)"></div><hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/><h4 style="margin-bottom:10px;">연락처 및 SNS 링크 목록</h4><div id="sortable-contacts-\${pIdx}">\`;
+        let html = `<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">🌟 기본 정보 및 연락처</div><div class="admin-group-body"><div class="admin-form-group"><label>이름</label><input type="text" value="${d.name}" oninput="setVal('profileList.${pIdx}.data.name', this.value)"></div><div class="admin-form-group"><label>타이틀/부제목</label><input type="text" value="${d.subtitle}" oninput="setVal('profileList.${pIdx}.data.subtitle', this.value)"></div><hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/><h4 style="margin-bottom:10px;">연락처 및 SNS 링크 목록</h4><div id="sortable-contacts-${pIdx}">`;
         d.contacts.forEach((c, i) => {
-            html += \`<div class="admin-list-item sortable-contact-item" data-idx="\${i}"><div class="admin-controls"><span class="drag-handle">☰ 드래그</span><button class="del" onclick="arrDel('profileList.\${pIdx}.data.contacts', \${i})">삭제</button></div><div style="display:flex; gap:10px;"><input type="text" style="width:60px;" placeholder="아이콘" value="\${c.icon}" oninput="setVal('profileList.\${pIdx}.data.contacts.\${i}.icon', this.value)"><input type="text" style="width:90px;" placeholder="라벨명" value="\${c.label}" oninput="setVal('profileList.\${pIdx}.data.contacts.\${i}.label', this.value)"><input type="text" style="flex:1;" placeholder="URL 링크" value="\${c.link}" oninput="setVal('profileList.\${pIdx}.data.contacts.\${i}.link', this.value)"></div></div>\`;
+            html += `<div class="admin-list-item sortable-contact-item" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰ 드래그</span><button class="del" onclick="arrDel('profileList.${pIdx}.data.contacts', ${i})">삭제</button></div><div style="display:flex; gap:10px;"><input type="text" style="width:60px;" placeholder="아이콘" value="${c.icon}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.icon', this.value)"><input type="text" style="width:90px;" placeholder="라벨명" value="${c.label}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.label', this.value)"><input type="text" style="flex:1;" placeholder="URL 링크" value="${c.link}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.link', this.value)"></div></div>`;
         });
-        html += \`</div><button class="btn-add" onclick="addContact(\${pIdx})">+ 연락처/SNS 아이콘 추가</button></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">📂 카테고리 및 패널 내용 수정</div><div class="admin-group-body"><div id="sortable-accordions-\${pIdx}">\`;
+        html += `</div><button class="btn-add" onclick="addContact(${pIdx})">+ 연락처/SNS 아이콘 추가</button></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">📂 카테고리 및 패널 내용 수정</div><div class="admin-group-body"><div id="sortable-accordions-${pIdx}">`;
         d.accordions.forEach((acc, i) => {
-            html += \`<div class="admin-list-item sortable-accordion-item" style="border-color:#aaa; background:#fff;" data-idx="\${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">[카테고리]</div><button class="del" onclick="arrDel('profileList.\${pIdx}.data.accordions', \${i})">카테고리 삭제</button></div><div class="admin-form-group"><label>카테고리 대제목</label><input type="text" value="\${acc.title}" oninput="setVal('profileList.\${pIdx}.data.accordions.\${i}.title', this.value)"></div><div style="padding:10px; background:#f5f7fa; border-radius:8px; margin-top:15px; border:1px solid #e1e4e8;"><label style="font-size:13px; font-weight:bold; margin-bottom:10px; display:block; color:#444;">내부 상세 내용 (패널)</label><div id="sortable-blocks-\${pIdx}-\${i}">\`;
+            html += `<div class="admin-list-item sortable-accordion-item" style="border-color:#aaa; background:#fff;" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">[카테고리]</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.accordions', ${i})">카테고리 삭제</button></div><div class="admin-form-group"><label>카테고리 대제목</label><input type="text" value="${acc.title}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.title', this.value)"></div><div style="padding:10px; background:#f5f7fa; border-radius:8px; margin-top:15px; border:1px solid #e1e4e8;"><label style="font-size:13px; font-weight:bold; margin-bottom:10px; display:block; color:#444;">내부 상세 내용 (패널)</label><div id="sortable-blocks-${pIdx}-${i}">`;
             acc.blocks.forEach((block, bIdx) => {
                 const typeName = block.type === 'button' ? '버튼' : (block.type === 'list' ? '목록형' : (block.type === 'image' ? '이미지' : '텍스트'));
-                html += \`<div class="admin-list-item sortable-block-item" style="background:#fff; border-color:#dcdcdc;" data-idx="\${bIdx}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">\${typeName}</div><button class="del" onclick="arrDel('profileList.\${pIdx}.data.accordions.\${i}.blocks', \${bIdx})">삭제</button></div><div class="admin-form-group"><label>\${block.type==='button'?'버튼에 쓰일 글자':(block.type==='image'?'이미지 설명(선택)':'소제목(선택)')}</label><input type="text" value="\${block.title}" oninput="setVal('profileList.\${pIdx}.data.accordions.\${i}.blocks.\${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>\${block.type==='button'?'이동할 URL 주소':(block.type==='image'?'이미지 URL (http://...)':'본문 내용')}</label>\${(block.type==='button' || block.type==='image') ? \`<input type="text" value="\${block.content}" oninput="setVal('profileList.\${pIdx}.data.accordions.\${i}.blocks.\${bIdx}.content', this.value)">\` : \`<textarea oninput="setVal('profileList.\${pIdx}.data.accordions.\${i}.blocks.\${bIdx}.content', this.value)">\${block.content}</textarea>\`}</div></div>\`;
+                html += `<div class="admin-list-item sortable-block-item" style="background:#fff; border-color:#dcdcdc;" data-idx="${bIdx}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">${typeName}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.accordions.${i}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>${block.type==='button'?'버튼에 쓰일 글자':(block.type==='image'?'이미지 설명(선택)':'소제목(선택)')}</label><input type="text" value="${block.title}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>${block.type==='button'?'이동할 URL 주소':(block.type==='image'?'이미지 URL (http://...)':'본문 내용')}</label>${(block.type==='button' || block.type==='image') ? `<input type="text" value="${block.content}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">` : `<textarea oninput="setVal('profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">${block.content}</textarea>`}</div></div>`;
             });
-            html += \`</div><button class="btn-add" style="background:#fff;" onclick="showAddBlockModal(\${pIdx}, \${i})">+ 패널 내용/이미지 추가</button></div></div>\`;
+            html += `</div><button class="btn-add" style="background:#fff;" onclick="showAddBlockModal(${pIdx}, ${i})">+ 패널 내용/이미지 추가</button></div></div>`;
         });
-        html += \`</div><button class="btn" style="background:#333; margin-top:15px;" onclick="addAccordion(\${pIdx})">+ 새로운 카테고리 추가</button></div></div>\`;
+        html += `</div><button class="btn" style="background:#333; margin-top:15px;" onclick="addAccordion(${pIdx})">+ 새로운 카테고리 추가</button></div></div>`;
         return html;
     }
 
     function renderAdminType2(pIdx, d) {
-        let html = \`<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">💼 상/하단 고정 영역 수정</div><div class="admin-group-body"><h4 style="margin-bottom:10px;">상단 고정 영역</h4><div class="admin-form-group"><label>대제목</label><input type="text" value="\${d.top.title}" oninput="setVal('profileList.\${pIdx}.data.top.title', this.value)"></div><div class="admin-form-group"><label>인용구 (기울임 꼴)</label><input type="text" value="\${d.top.quote}" oninput="setVal('profileList.\${pIdx}.data.top.quote', this.value)"></div><div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profileList.\${pIdx}.data.top.text', this.value)">\${d.top.text}</textarea></div><hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/><h4 style="margin-bottom:10px;">하단 고정 영역</h4><div class="admin-form-group"><label>제목</label><input type="text" value="\${d.footer.title}" oninput="setVal('profileList.\${pIdx}.data.footer.title', this.value)"></div><div class="admin-form-group"><label>인용구</label><input type="text" value="\${d.footer.quote}" oninput="setVal('profileList.\${pIdx}.data.footer.quote', this.value)"></div><div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profileList.\${pIdx}.data.footer.text', this.value)">\${d.footer.text}</textarea></div></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">중앙 탭 영역 관리 (내용 및 이미지)</div><div class="admin-group-body"><div id="sortable-tabs-\${pIdx}">\`;
+        let html = `<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">💼 상/하단 고정 영역 수정</div><div class="admin-group-body"><h4 style="margin-bottom:10px;">상단 고정 영역</h4><div class="admin-form-group"><label>대제목</label><input type="text" value="${d.top.title}" oninput="setVal('profileList.${pIdx}.data.top.title', this.value)"></div><div class="admin-form-group"><label>인용구 (기울임 꼴)</label><input type="text" value="${d.top.quote}" oninput="setVal('profileList.${pIdx}.data.top.quote', this.value)"></div><div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profileList.${pIdx}.data.top.text', this.value)">${d.top.text}</textarea></div><hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/><h4 style="margin-bottom:10px;">하단 고정 영역</h4><div class="admin-form-group"><label>제목</label><input type="text" value="${d.footer.title}" oninput="setVal('profileList.${pIdx}.data.footer.title', this.value)"></div><div class="admin-form-group"><label>인용구</label><input type="text" value="${d.footer.quote}" oninput="setVal('profileList.${pIdx}.data.footer.quote', this.value)"></div><div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profileList.${pIdx}.data.footer.text', this.value)">${d.footer.text}</textarea></div></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">중앙 탭 영역 관리 (내용 및 이미지)</div><div class="admin-group-body"><div id="sortable-tabs-${pIdx}">`;
         d.tabs.forEach((tab, i) => {
-            html += \`<div class="admin-list-item sortable-tab-item" style="border-color:#b5815e;" data-idx="\${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">탭 콘텐츠 \${i+1}</div><button class="del" onclick="arrDel('profileList.\${pIdx}.data.tabs', \${i})">이 탭 삭제</button></div><div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="\${tab.tabName}" oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.tabName', this.value)"></div><div class="admin-form-group"><label>내용 대제목</label><input type="text" value="\${tab.title}" oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구</label><input type="text" value="\${tab.quote}" oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 주소 (선택, http://...)</label><input type="text" value="\${tab.imageUrl || ''}" oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.imageUrl', this.value)"></div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.text', this.value)">\${tab.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태로 줄바꿈 기입)</label><textarea oninput="setVal('profileList.\${pIdx}.data.tabs.\${i}.links', this.value)">\${tab.links}</textarea></div></div>\`;
+            html += `<div class="admin-list-item sortable-tab-item" style="border-color:#b5815e;" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">탭 콘텐츠 ${i+1}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs', ${i})">이 탭 삭제</button></div><div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.tabName', this.value)"></div><div class="admin-form-group"><label>내용 대제목</label><input type="text" value="${tab.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구</label><input type="text" value="${tab.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 주소 (선택, http://...)</label><input type="text" value="${tab.imageUrl || ''}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.imageUrl', this.value)"></div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.text', this.value)">${tab.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태로 줄바꿈 기입)</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.links', this.value)">${tab.links}</textarea></div></div>`;
         });
-        html += \`</div><button class="btn-add" style="margin-top:15px;" onclick="addTabContent(\${pIdx})">+ 새 탭 콘텐츠 추가</button></div></div>\`;
+        html += `</div><button class="btn-add" style="margin-top:15px;" onclick="addTabContent(${pIdx})">+ 새 탭 콘텐츠 추가</button></div></div>`;
         return html;
     }
 
@@ -534,20 +534,20 @@
         if(!p) return;
 
         if (p.type === 'type1') {
-            const contactsEl = document.getElementById(\`sortable-contacts-\${pIdx}\`);
-            if(contactsEl) Sortable.create(contactsEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(\`profileList.\${pIdx}.data.contacts\`, e.oldIndex, e.newIndex) });
+            const contactsEl = document.getElementById(`sortable-contacts-${pIdx}`);
+            if(contactsEl) Sortable.create(contactsEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(`profileList.${pIdx}.data.contacts`, e.oldIndex, e.newIndex) });
 
-            const accordionsEl = document.getElementById(\`sortable-accordions-\${pIdx}\`);
+            const accordionsEl = document.getElementById(`sortable-accordions-${pIdx}`);
             if(accordionsEl) {
-                Sortable.create(accordionsEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(\`profileList.\${pIdx}.data.accordions\`, e.oldIndex, e.newIndex) });
+                Sortable.create(accordionsEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(`profileList.${pIdx}.data.accordions`, e.oldIndex, e.newIndex) });
                 p.data.accordions.forEach((_, aIdx) => {
-                    const blocksEl = document.getElementById(\`sortable-blocks-\${pIdx}-\${aIdx}\`);
-                    if(blocksEl) Sortable.create(blocksEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(\`profileList.\${pIdx}.data.accordions.\${aIdx}.blocks\`, e.oldIndex, e.newIndex) });
+                    const blocksEl = document.getElementById(`sortable-blocks-${pIdx}-${aIdx}`);
+                    if(blocksEl) Sortable.create(blocksEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(`profileList.${pIdx}.data.accordions.${aIdx}.blocks`, e.oldIndex, e.newIndex) });
                 });
             }
         } else if (p.type === 'type2') {
-            const tabsEl = document.getElementById(\`sortable-tabs-\${pIdx}\`);
-            if(tabsEl) Sortable.create(tabsEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(\`profileList.\${pIdx}.data.tabs\`, e.oldIndex, e.newIndex) });
+            const tabsEl = document.getElementById(`sortable-tabs-${pIdx}`);
+            if(tabsEl) Sortable.create(tabsEl, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', onEnd: e => updateArray(`profileList.${pIdx}.data.tabs`, e.oldIndex, e.newIndex) });
         }
     }
 
