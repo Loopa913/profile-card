@@ -321,6 +321,10 @@
             console.error('DB 불러오기 에러:', err);
             // 에러 발생 시 임시로 기본 데이터 사용
             appData = JSON.parse(JSON.stringify(defaultData));
+            // 만약 테이블에 데이터가 아예 없어서 발생한 에러(PGRST116)라면 초기 데이터 생성
+            if (err.code === 'PGRST116') {
+                await saveToSupabase(appData, false);
+            }
         }
 
         // 로딩이 끝나면 현재 해시에 맞춰 렌더링
@@ -331,8 +335,7 @@
     async function saveToSupabase(dataObj, showAlert = true) {
         const { error } = await supabaseClient
             .from('profile_settings')
-            .update({ data: dataObj })
-            .eq('id', 1);
+            .upsert({ id: 1, data: dataObj }); // update 대신 upsert (없으면 생성, 있으면 수정)
             
         if (error) {
             console.error('DB 저장 에러:', error);
