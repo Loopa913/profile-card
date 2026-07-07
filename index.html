@@ -259,13 +259,19 @@
             if (error) throw error;
             if (data && data.data && Object.keys(data.data).length > 0) {
                 appData = data.data;
+                // v5 (배열 기반) 마이그레이션 확인
                 if (!appData.version || appData.version < 5) {
                     let migrateList = [];
+                    // 만약 v4(객체 기반 profiles) 형태라면
                     if (appData.profiles && !Array.isArray(appData.profiles)) {
                         for (let k in appData.profiles) { migrateList.push({ id: k, type: appData.profiles[k].type, title: appData.profiles[k].title, data: appData.profiles[k].data }); }
+                    // 아주 옛날 v3 이하 형태라면
                     } else if (appData.star_bodre) {
                         migrateList.push({ id: "star_bodre", type: "type1", title: "프로필 1", data: appData.star_bodre });
                         migrateList.push({ id: "Copper_CEO", type: "type2", title: "프로필 2", data: appData.copper_ceo });
+                    // 그 밖의 알 수 없는 구조라면 기본값 사용
+                    } else {
+                        migrateList = JSON.parse(JSON.stringify(defaultData.profileList));
                     }
                     appData = { version: 5, profileList: migrateList };
                     await saveToSupabase(appData, false);
@@ -296,7 +302,29 @@
 
     function renderIndex() {
         document.body.className = 'theme-index';
-        appEl.innerHTML = \`<div class="index-screen"><h1 style="font-size:22px; font-weight:800; margin-bottom:12px; color:#111;">프로필 홈페이지</h1><p style="font-size:15px; color:#666; line-height:1.5;">이곳은 개인 프로필 웹사이트입니다.<br>올바른 접속 주소(URL)를 확인해주세요.</p></div>\`;
+        
+        let buttonsHtml = '';
+        if(appData && appData.profileList && appData.profileList.length > 0) {
+            appData.profileList.forEach(p => {
+                const color = p.type === 'type1' ? '#ff6b81' : '#b5815e';
+                buttonsHtml += \`<button onclick="goToHash('#\${p.id}')" class="btn" style="background:\${color}; border-radius:12px;">\${p.title} (#\${p.id})</button>\`;
+            });
+        }
+        
+        appEl.innerHTML = \`
+            <div class="index-screen">
+                <h1 style="font-size:22px; font-weight:800; margin-bottom:12px; color:#111;">프로필 홈페이지</h1>
+                <p style="font-size:15px; color:#666; line-height:1.5;">
+                    이곳은 개인 프로필 웹사이트입니다.<br>
+                    아래 버튼을 눌러 이동하거나 주소(URL)를 확인해주세요.
+                </p>
+                <div style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:280px; margin-top:30px;">
+                    <p style="font-size:12px; color:#999; margin-bottom:-5px;">▼ 접속 메뉴</p>
+                    \${buttonsHtml}
+                    <button onclick="goToHash('#admin')" class="btn" style="background:#333; border-radius:12px; margin-top:10px;">⚙️ 관리자 페이지 (#admin)</button>
+                </div>
+            </div>
+        \`;
     }
 
     function renderType1(d) {
