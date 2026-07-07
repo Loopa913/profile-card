@@ -302,34 +302,23 @@
 
     function renderIndex() {
         document.body.className = 'theme-index';
-        
-        let buttonsHtml = '';
-        if(appData && appData.profileList && appData.profileList.length > 0) {
-            appData.profileList.forEach(p => {
-                const color = p.type === 'type1' ? '#ff6b81' : '#b5815e';
-                buttonsHtml += `<button onclick="goToHash('#${p.id}')" class="btn" style="background:${color}; border-radius:12px;">${p.title} (#${p.id})</button>`;
-            });
-        }
-        
         appEl.innerHTML = `
             <div class="index-screen">
                 <h1 style="font-size:22px; font-weight:800; margin-bottom:12px; color:#111;">프로필 홈페이지</h1>
                 <p style="font-size:15px; color:#666; line-height:1.5;">
                     이곳은 개인 프로필 웹사이트입니다.<br>
-                    아래 버튼을 눌러 이동하거나 주소(URL)를 확인해주세요.
+                    올바른 주소(URL)를 입력하여 접속해주세요.
                 </p>
-                <div style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:280px; margin-top:30px;">
-                    <p style="font-size:12px; color:#999; margin-bottom:-5px;">▼ 접속 메뉴</p>
-                    ${buttonsHtml}
-                    <button onclick="goToHash('#admin')" class="btn" style="background:#333; border-radius:12px; margin-top:10px;">⚙️ 관리자 페이지 (#admin)</button>
-                </div>
             </div>
         `;
     }
 
     function renderType1(d) {
         document.body.className = 'theme-light';
-        let contactsHtml = d.contacts.map(c => `<a href="${c.link}" target="_blank" class="contact-icon"><i>${c.icon}</i><span>${c.label}</span></a>`).join('');
+        let contactsHtml = d.contacts.map(c => {
+            if (c.type === 'image') return `<div style="grid-column: 1 / -1; margin: 10px 0;"><img src="${c.content}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;" alt="기본 정보 이미지"></div>`;
+            return `<a href="${c.link}" target="_blank" class="contact-icon"><i>${c.icon}</i><span>${c.label}</span></a>`;
+        }).join('');
         let accordionsHtml = d.accordions.map(acc => {
             let blocksHtml = acc.blocks.map(b => {
                 if (b.type === 'button') return `<a href="${b.content}" target="_blank" class="btn btn-outline" style="margin-bottom:15px; padding:10px;">${b.title}</a>`;
@@ -438,7 +427,15 @@
         }
     }
     
-    window.addContact = function(pIdx) { syncInputsBeforeAction(); appData.profileList[pIdx].data.contacts.push({ icon: "🔗", label: "새 링크", link: "#" }); renderAdmin(); }
+    window.addHeaderItem = function(pIdx, type) { 
+        syncInputsBeforeAction(); 
+        if (type === 'image') {
+            appData.profileList[pIdx].data.contacts.push({ type: 'image', content: '' }); 
+        } else {
+            appData.profileList[pIdx].data.contacts.push({ type: 'contact', icon: "🔗", label: "새 링크", link: "#" }); 
+        }
+        renderAdmin(); 
+    }
     window.addAccordion = function(pIdx) { syncInputsBeforeAction(); appData.profileList[pIdx].data.accordions.push({ title: "새 카테고리 (대제목)", blocks: [] }); renderAdmin(); }
     window.showAddBlockModal = function(pIdx, accIdx) {
         document.getElementById('addBlockPIdx').value = pIdx;
@@ -491,9 +488,13 @@
     function renderAdminType1(pIdx, d) {
         let html = `<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">🌟 기본 정보 및 연락처</div><div class="admin-group-body"><div class="admin-form-group"><label>이름</label><input type="text" value="${d.name}" oninput="setVal('profileList.${pIdx}.data.name', this.value)"></div><div class="admin-form-group"><label>타이틀/부제목</label><input type="text" value="${d.subtitle}" oninput="setVal('profileList.${pIdx}.data.subtitle', this.value)"></div><hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/><h4 style="margin-bottom:10px;">연락처 및 SNS 링크 목록</h4><div id="sortable-contacts-${pIdx}">`;
         d.contacts.forEach((c, i) => {
-            html += `<div class="admin-list-item sortable-contact-item" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰ 드래그</span><button class="del" onclick="arrDel('profileList.${pIdx}.data.contacts', ${i})">삭제</button></div><div style="display:flex; gap:10px;"><input type="text" style="width:60px;" placeholder="아이콘" value="${c.icon}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.icon', this.value)"><input type="text" style="width:90px;" placeholder="라벨명" value="${c.label}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.label', this.value)"><input type="text" style="flex:1;" placeholder="URL 링크" value="${c.link}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.link', this.value)"></div></div>`;
+            if (c.type === 'image') {
+                html += `<div class="admin-list-item sortable-contact-item" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span><div class="title-area sub">이미지</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.contacts', ${i})">삭제</button></div><div class="admin-form-group"><input type="text" placeholder="이미지 URL 주소" value="${c.content || ''}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.content', this.value)"></div></div>`;
+            } else {
+                html += `<div class="admin-list-item sortable-contact-item" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span><div class="title-area sub">연락처 버튼</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.contacts', ${i})">삭제</button></div><div style="display:flex; gap:10px;"><input type="text" style="width:60px;" placeholder="아이콘" value="${c.icon || ''}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.icon', this.value)"><input type="text" style="width:90px;" placeholder="라벨명" value="${c.label || ''}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.label', this.value)"><input type="text" style="flex:1;" placeholder="URL 링크" value="${c.link || ''}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.link', this.value)"></div></div>`;
+            }
         });
-        html += `</div><button class="btn-add" onclick="addContact(${pIdx})">+ 연락처/SNS 아이콘 추가</button></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">📂 카테고리 및 패널 내용 수정</div><div class="admin-group-body"><div id="sortable-accordions-${pIdx}">`;
+        html += `</div><div style="display:flex; gap:10px; margin-top:5px;"><button class="btn-add" style="flex:1;" onclick="addHeaderItem(${pIdx}, 'contact')">+ 연락처 추가</button><button class="btn-add" style="flex:1;" onclick="addHeaderItem(${pIdx}, 'image')">+ 이미지 추가</button></div></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;">📂 카테고리 및 패널 내용 수정</div><div class="admin-group-body"><div id="sortable-accordions-${pIdx}">`;
         d.accordions.forEach((acc, i) => {
             html += `<div class="admin-list-item sortable-accordion-item" style="border-color:#aaa; background:#fff;" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">[카테고리]</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.accordions', ${i})">카테고리 삭제</button></div><div class="admin-form-group"><label>카테고리 대제목</label><input type="text" value="${acc.title}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.title', this.value)"></div><div style="padding:10px; background:#f5f7fa; border-radius:8px; margin-top:15px; border:1px solid #e1e4e8;"><label style="font-size:13px; font-weight:bold; margin-bottom:10px; display:block; color:#444;">내부 상세 내용 (패널)</label><div id="sortable-blocks-${pIdx}-${i}">`;
             acc.blocks.forEach((block, bIdx) => {
