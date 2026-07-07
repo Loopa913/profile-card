@@ -10,6 +10,9 @@
     
     <style>
         :root { --transition-speed: 0.3s; }
+        .image-dropzone { border: 2px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; color: #777; cursor: pointer; background: #fafafa; transition: all 0.2s; font-size: 13px; line-height: 1.4; }
+        .image-dropzone:hover { border-color: #0066cc; background: #f0f7ff; color: #0066cc; }
+        .image-dropzone img { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { display: flex; justify-content: center; min-height: 100vh; transition: background-color var(--transition-speed) ease; }
         .mobile-container { width: 100%; max-width: 480px; min-height: 100vh; position: relative; box-shadow: 0 0 30px rgba(0, 0, 0, 0.15); transition: all var(--transition-speed) ease; overflow-y: auto; overflow-x: hidden; }
@@ -115,7 +118,7 @@
     </style>
 </head>
 <body>
-
+    <input type="file" id="globalImageInput" accept="image/*" style="display:none;" onchange="processGlobalImageUpload(this)">
     <div class="mobile-container" id="app"></div>
 
     <!-- 모달: 프로필 추가 -->
@@ -311,10 +314,17 @@
 
     function renderType1(d) {
         document.body.className = 'theme-light';
-        let contactsHtml = d.contacts.map(c => {
-            if (c.type === 'image') return `<div style="grid-column: 1 / -1; margin: 10px 0;"><img src="${c.content}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;" alt="기본 정보 이미지"></div>`;
-            return `<a href="${c.link}" target="_blank" class="contact-icon"><i>${c.icon}</i><span>${c.label}</span></a>`;
-        }).join('');
+        let topImagesHtml = '';
+        let contactsHtml = '';
+        d.contacts.forEach(c => {
+            if (c.type === 'image') {
+                const imgHtml = `<div style="${c.position === 'top' ? 'margin-bottom:15px;' : 'grid-column: 1 / -1; margin: 10px 0;'}"><img src="${c.content}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;" alt="기본 정보 이미지"></div>`;
+                if (c.position === 'top') topImagesHtml += imgHtml;
+                else contactsHtml += imgHtml;
+            } else {
+                contactsHtml += `<a href="${c.link}" target="_blank" class="contact-icon"><i>${c.icon}</i><span>${c.label}</span></a>`;
+            }
+        });
         let accordionsHtml = d.accordions.map(acc => {
             let blocksHtml = acc.blocks.map(b => {
                 if (b.type === 'button') return `<a href="${b.content}" target="_blank" class="btn btn-outline" style="margin-bottom:15px; padding:10px;">${b.title}</a>`;
@@ -324,7 +334,7 @@
             }).join('');
             return `<div class="accordion-item"><div class="accordion-header" onclick="toggleAccordion(this)"><span>${acc.title}</span> <span>▼</span></div><div class="accordion-content"><div class="accordion-inner"><div class="accordion-body" style="padding-top:5px;">${blocksHtml}</div></div></div></div>`;
         }).join('');
-        appEl.innerHTML = `<div class="header"><h1>${d.name}</h1><p>${d.subtitle}</p><div class="contact-grid">${contactsHtml}</div></div><div class="section">${accordionsHtml}</div>`;
+        appEl.innerHTML = `<div class="header">${topImagesHtml}<h1>${d.name}</h1><p>${d.subtitle}</p><div class="contact-grid">${contactsHtml}</div></div><div class="section">${accordionsHtml}</div>`;
     }
 
     window.toggleAccordion = function(el) {
@@ -485,7 +495,7 @@
         let html = `<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;" onclick="this.parentElement.classList.toggle('open')"><span>🌟 기본 정보 및 연락처</span><span style="font-size:12px; color:#888;">▼</span></div><div class="admin-group-body"><div class="admin-form-group"><label>이름</label><input type="text" value="${d.name}" oninput="setVal('profileList.${pIdx}.data.name', this.value)"></div><div class="admin-form-group"><label>타이틀/부제목</label><input type="text" value="${d.subtitle}" oninput="setVal('profileList.${pIdx}.data.subtitle', this.value)"></div><hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/><h4 style="margin-bottom:10px;">연락처 및 SNS 링크 목록</h4><div id="sortable-contacts-${pIdx}">`;
         d.contacts.forEach((c, i) => {
             if (c.type === 'image') {
-                html += `<div class="admin-list-item sortable-contact-item" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span><div class="title-area sub">이미지</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.contacts', ${i})">삭제</button></div><div class="admin-form-group"><input type="text" placeholder="이미지 URL 주소" value="${c.content || ''}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.content', this.value)"></div></div>`;
+                html += `<div class="admin-list-item sortable-contact-item" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span><div class="title-area sub">이미지</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.contacts', ${i})">삭제</button></div><div class="admin-form-group"><label>표시 위치 (드래그 순서와 함께 적용됨)</label><select oninput="setVal('profileList.${pIdx}.data.contacts.${i}.position', this.value)" style="margin-bottom:10px;"><option value="bottom" ${c.position !== 'top' ? 'selected' : ''}>이름 아래 (연락처 영역)</option><option value="top" ${c.position === 'top' ? 'selected' : ''}>이름 위 (최상단)</option></select><label>이미지 등록</label>${getImageFieldHtml(`profileList.${pIdx}.data.contacts.${i}.content`, c.content || '')}</div></div>`;
             } else {
                 html += `<div class="admin-list-item sortable-contact-item" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span><div class="title-area sub">연락처 버튼</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.contacts', ${i})">삭제</button></div><div style="display:flex; gap:10px;"><input type="text" style="width:60px;" placeholder="아이콘" value="${c.icon || ''}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.icon', this.value)"><input type="text" style="width:90px;" placeholder="라벨명" value="${c.label || ''}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.label', this.value)"><input type="text" style="flex:1;" placeholder="URL 링크" value="${c.link || ''}" oninput="setVal('profileList.${pIdx}.data.contacts.${i}.link', this.value)"></div></div>`;
             }
@@ -495,7 +505,7 @@
             html += `<div class="admin-list-item sortable-accordion-item" style="border-color:#aaa; background:#fff;" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">[카테고리]</div><button type="button" onclick="const el = document.getElementById('admin-acc-blocks-${pIdx}-${i}'); el.style.display = el.style.display==='none'?'block':'none';" style="margin-left:10px; padding:4px 8px; font-size:12px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; color:#333;">접기/펴기</button><button class="del" onclick="arrDel('profileList.${pIdx}.data.accordions', ${i})">카테고리 삭제</button></div><div class="admin-form-group"><label>카테고리 대제목</label><input type="text" value="${acc.title}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.title', this.value)"></div><div id="admin-acc-blocks-${pIdx}-${i}" style="display:none; padding:10px; background:#f5f7fa; border-radius:8px; margin-top:15px; border:1px solid #e1e4e8;"><label style="font-size:13px; font-weight:bold; margin-bottom:10px; display:block; color:#444;">내부 상세 내용 (패널)</label><div id="sortable-blocks-${pIdx}-${i}">`;
             acc.blocks.forEach((block, bIdx) => {
                 const typeName = block.type === 'button' ? '버튼' : (block.type === 'list' ? '목록형' : (block.type === 'image' ? '이미지' : '텍스트'));
-                html += `<div class="admin-list-item sortable-block-item" style="background:#fff; border-color:#dcdcdc;" data-idx="${bIdx}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">${typeName}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.accordions.${i}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>${block.type==='button'?'버튼에 쓰일 글자':(block.type==='image'?'이미지 설명(선택)':'소제목(선택)')}</label><input type="text" value="${block.title}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>${block.type==='button'?'이동할 URL 주소':(block.type==='image'?'이미지 URL (http://...)':'본문 내용')}</label>${(block.type==='button' || block.type==='image') ? `<input type="text" value="${block.content}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">` : `<textarea oninput="setVal('profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">${block.content}</textarea>`}</div></div>`;
+                html += `<div class="admin-list-item sortable-block-item" style="background:#fff; border-color:#dcdcdc;" data-idx="${bIdx}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">${typeName}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.accordions.${i}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>${block.type==='button'?'버튼에 쓰일 글자':(block.type==='image'?'이미지 설명(선택)':'소제목(선택)')}</label><input type="text" value="${block.title}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>${block.type==='button'?'이동할 URL 주소':(block.type==='image'?'이미지 업로드':'본문 내용')}</label>${block.type==='image' ? getImageFieldHtml(`profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.content`, block.content||'') : (block.type==='button' ? `<input type="text" value="${block.content}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">` : `<textarea oninput="setVal('profileList.${pIdx}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">${block.content}</textarea>`)}</div></div>`;
             });
             html += `</div><button class="btn-add" style="background:#fff;" onclick="showAddBlockModal(${pIdx}, ${i})">+ 패널 내용/이미지 추가</button></div></div>`;
         });
@@ -506,7 +516,7 @@
     function renderAdminType2(pIdx, d) {
         let html = `<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;" onclick="this.parentElement.classList.toggle('open')"><span>💼 상/하단 고정 영역 수정</span><span style="font-size:12px; color:#888;">▼</span></div><div class="admin-group-body"><h4 style="margin-bottom:10px;">상단 고정 영역</h4><div class="admin-form-group"><label>대제목</label><input type="text" value="${d.top.title}" oninput="setVal('profileList.${pIdx}.data.top.title', this.value)"></div><div class="admin-form-group"><label>인용구 (기울임 꼴)</label><input type="text" value="${d.top.quote}" oninput="setVal('profileList.${pIdx}.data.top.quote', this.value)"></div><div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profileList.${pIdx}.data.top.text', this.value)">${d.top.text}</textarea></div><hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/><h4 style="margin-bottom:10px;">하단 고정 영역</h4><div class="admin-form-group"><label>제목</label><input type="text" value="${d.footer.title}" oninput="setVal('profileList.${pIdx}.data.footer.title', this.value)"></div><div class="admin-form-group"><label>인용구</label><input type="text" value="${d.footer.quote}" oninput="setVal('profileList.${pIdx}.data.footer.quote', this.value)"></div><div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profileList.${pIdx}.data.footer.text', this.value)">${d.footer.text}</textarea></div></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;" onclick="this.parentElement.classList.toggle('open')"><span>중앙 탭 영역 관리 (내용 및 이미지)</span><span style="font-size:12px; color:#888;">▼</span></div><div class="admin-group-body"><div id="sortable-tabs-${pIdx}">`;
         d.tabs.forEach((tab, i) => {
-            html += `<div class="admin-list-item sortable-tab-item" style="border-color:#b5815e;" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">탭 콘텐츠 ${i+1}</div><button type="button" onclick="const el = document.getElementById('admin-tab-blocks-${pIdx}-${i}'); el.style.display = el.style.display==='none'?'block':'none';" style="margin-left:10px; padding:4px 8px; font-size:12px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; color:#333;">접기/펴기</button><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs', ${i})">이 탭 삭제</button></div><div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.tabName', this.value)"></div><div id="admin-tab-blocks-${pIdx}-${i}" style="display:none; padding-top:10px;"><div class="admin-form-group"><label>내용 대제목</label><input type="text" value="${tab.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구</label><input type="text" value="${tab.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 주소 (선택, http://...)</label><input type="text" value="${tab.imageUrl || ''}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.imageUrl', this.value)"></div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.text', this.value)">${tab.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태로 줄바꿈 기입)</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.links', this.value)">${tab.links}</textarea></div></div></div>`;
+            html += `<div class="admin-list-item sortable-tab-item" style="border-color:#b5815e;" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">탭 콘텐츠 ${i+1}</div><button type="button" onclick="const el = document.getElementById('admin-tab-blocks-${pIdx}-${i}'); el.style.display = el.style.display==='none'?'block':'none';" style="margin-left:10px; padding:4px 8px; font-size:12px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; color:#333;">접기/펴기</button><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs', ${i})">이 탭 삭제</button></div><div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.tabName', this.value)"></div><div id="admin-tab-blocks-${pIdx}-${i}" style="display:none; padding-top:10px;"><div class="admin-form-group"><label>내용 대제목</label><input type="text" value="${tab.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구</label><input type="text" value="${tab.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 등록</label>${getImageFieldHtml(`profileList.${pIdx}.data.tabs.${i}.imageUrl`, tab.imageUrl||'')}</div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.text', this.value)">${tab.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태로 줄바꿈 기입)</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.links', this.value)">${tab.links}</textarea></div></div></div>`;
         });
         html += `</div><button class="btn-add" style="margin-top:15px;" onclick="addTabContent(${pIdx})">+ 새 탭 콘텐츠 추가</button></div></div>`;
         return html;
@@ -574,6 +584,47 @@
     };
 
     function router() {
+        let currentUploadPath = '';
+        window.openImageUploader = function(path) { currentUploadPath = path; document.getElementById('globalImageInput').click(); };
+        window.processGlobalImageUpload = function(input) {
+            if(input.files && input.files[0]) {
+                syncInputsBeforeAction();
+                handleImageUpload(input.files[0], function(base64) { setVal(currentUploadPath, base64); renderAdmin(); });
+            }
+            input.value = '';
+        };
+        window.handleDragOver = function(e) { e.preventDefault(); e.currentTarget.style.borderColor = '#0066cc'; e.currentTarget.style.background = '#f0f7ff'; };
+        window.handleDragLeave = function(e) { e.preventDefault(); e.currentTarget.style.borderColor = '#ccc'; e.currentTarget.style.background = '#fafafa'; };
+        window.handleDrop = function(e, path) {
+            e.preventDefault(); e.currentTarget.style.borderColor = '#ccc'; e.currentTarget.style.background = '#fafafa';
+            if(e.dataTransfer.files && e.dataTransfer.files[0]) {
+                syncInputsBeforeAction();
+                handleImageUpload(e.dataTransfer.files[0], function(base64) { setVal(path, base64); renderAdmin(); });
+            }
+        };
+        function handleImageUpload(file, callback) {
+            if (!file || !file.type.startsWith('image/')) return alert('이미지 파일만 업로드 가능합니다.');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width; let h = img.height;
+                    const MAX_SIZE = 800; 
+                    if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } } else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/jpeg', 0.8));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        window.getImageFieldHtml = (path, val) => {
+            return `<div class="image-dropzone" onclick="openImageUploader('${path}')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '${path}')">${val ? `<img src="${val}" style="max-height:80px; max-width:100%; object-fit:contain; border-radius:4px; margin-bottom:8px;"><br>클릭하거나 새 이미지를 드롭하여 변경` : '🖼️ 클릭하거나 이미지를 드래그 앤 드롭하세요'}</div><input type="text" style="margin-top:8px;" placeholder="또는 URL 직접 입력 (http://...)" value="${val}" oninput="setVal('${path}', this.value)">`;
+        };
+
         if (!appData) return; 
         const hash = window.location.hash.substring(1);
         appEl.style.opacity = '0';
