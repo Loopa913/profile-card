@@ -141,6 +141,12 @@
         /* ---------------- 관리자 전용 UI ---------------- */
         .admin-login { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
         .admin-login input { padding: 12px; border-radius: 8px; border: 1px solid #ccc; width: 100%; margin-bottom: 15px; text-align: center; font-size: 16px; }
+
+        .admin-tabs-row { display: flex; overflow-x: auto; gap: 8px; margin-bottom: 20px; padding-bottom: 10px; }
+        .admin-tabs-row button { white-space: nowrap; padding: 10px 16px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+        .admin-tabs-row button.active { background: #333; color: #fff; }
+        .admin-tabs-row button.inactive { background: #e0e0e0; color: #555; }
+        .admin-tabs-row button.add-btn { background: #0066cc; color: #fff; }
         
         .admin-group { border: 1px solid #ddd; border-radius: 12px; margin-bottom: 15px; background: #fff; overflow: hidden; }
         .admin-group-header { padding: 16px 20px; background: #f8f9fa; font-weight: 700; font-size: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
@@ -174,7 +180,7 @@
 
 <script>
     /* ==========================================
-       1. Supabase 연동 설정 (★ 추가된 핵심 로직)
+       1. Supabase 연동 설정
        ========================================== */
     const SUPABASE_URL = 'https://pujpflrpkpggyrgbstka.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB1anBmbHJwa3BnZ3lyZ2JzdGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjUwMjAsImV4cCI6MjA5ODk0MTAyMH0.KNFyc6iurqLGVR8irJTieEsAk9eoDwlM5DqPOEAY7ho';
@@ -186,78 +192,90 @@
        2. 기본 데이터 구조 정의
        ========================================== */
     const defaultData = {
-        version: 3,
-        star_bodre: {
-            name: "이은비",
-            subtitle: "Artist · Actor · Tarot Reader · Creator",
-            contacts: [
-                { icon: "📞", label: "연락처", link: "tel:01025498302" },
-                { icon: "💬", label: "카카오톡", link: "kakaoopen://join?id=romy0501" },
-                { icon: "📷", label: "인스타그램", link: "https://www.instagram.com/lee_eunbi_?igsh=MWE2eXFlMmo2aHludw==" },
-                { icon: "📝", label: "블로그", link: "https://blog.naver.com/romy0501_" }
-            ],
-            accordions: [
-                {
-                    title: "🎬 배우 (Actor)",
-                    blocks: [
-                        { type: "button", title: "🟢 네이버 프로필 바로가기", content: "https://search.naver.com/search.naver?where=nexearch&sm=tab_etc&mra=bjky&pkid=1&os=33390505&qvt=0&query=%EC%9D%B4%EC%9D%80%EB%B9%84" },
-                        { type: "list", title: "광고 경력", content: "중흥건설 세종시 중흥S클래스 아파트 광고\n명인제약 이가탄 광고" },
-                        { type: "list", title: "방송/드라마", content: "EBS 교양 메인 타이틀\nEBS 드라마 메인 타이틀\nTVN 드라마 응답하라 1994\nTVN 드라마 혼술남녀" },
-                        { type: "list", title: "단편영화", content: "단편영화 스티커 (다은 役)\n단편영화 엄마의 바다 (수진 役)\n단편영화 John Doe (나연 役)" },
-                        { type: "list", title: "모델 및 특강", content: "CJ 홈쇼핑 ENG 영상 모델\n필립스 LED 바이럴 모델\n빕스 바이럴 모델\n10JAM 바이럴 모델\n토소웅 화장품 모델\n더블유랩 화장품 모델\n천재교육 국어교과서 표지모델\n아이클릭아트 이미지 모델\n인터넷 쇼핑몰 및 보도기사 모델\n서울지역 초등학교 진로교육 배우특강" }
-                    ]
-                },
-                {
-                    title: "🔮 타로 (Tarot)",
-                    blocks: [
-                        { type: "text", title: "자격증", content: "타로심리상담사 자격증 보유 (한국문화예술교육협회)" },
-                        { type: "list", title: "경력 리스트", content: "2014년 타로리딩 시작\n홍카페 전화타로 상담 2년\n온라인 타로 강의 진행 5년\n오프라인 타로 강의 진행 2년\n1만건 이상의 온,오프라인 상담 경력\n전국 고등학교, 대학교 대상 축제 부스 다수 운영\n수도권 청소년수련관, 청소년센터 축제 부스 다수 운영" },
-                        { type: "button", title: "오픈채팅 상담하기", content: "https://open.kakao.com/o/snP8CDR" }
-                    ]
-                },
-                {
-                    title: "🎙️ 방송 & 커뮤니티",
-                    blocks: [
-                        { type: "button", title: "📺 치지직 방송", content: "https://chzzk.naver.com/0e2647cef57160864e0d6742c56deebd" },
-                        { type: "button", title: "🛍️ 굿즈샵", content: "https://www.coppercompany.ai.kr/25" },
-                        { type: "button", title: "🎨 네이버 OGQ마켓", content: "https://ogqmarket.naver.com/creators/%EC%97%AC%EB%B9%84%EB%B3%84" },
-                        { type: "button", title: "🧸 소품샵 (인스타그램)", content: "https://www.instagram.com/star.bodre?igsh=OHVrNGpuYmU0MGdt" }
-                    ]
-                },
-                {
-                    title: "📜 자격증 전체보기",
-                    blocks: [
-                        { type: "list", title: "취득 목록", content: "타로 심리 상담사\n미술 심리 상담사\n음악 심리 상담사\n조주 기능사" }
+        version: 4,
+        profiles: {
+            "star_bodre": {
+                type: "type1",
+                title: "프로필 1 (스타 보드레)",
+                data: {
+                    name: "이은비",
+                    subtitle: "Artist · Actor · Tarot Reader · Creator",
+                    contacts: [
+                        { icon: "📞", label: "연락처", link: "tel:01025498302" },
+                        { icon: "💬", label: "카카오톡", link: "kakaoopen://join?id=romy0501" },
+                        { icon: "📷", label: "인스타그램", link: "https://www.instagram.com/lee_eunbi_?igsh=MWE2eXFlMmo2aHludw==" },
+                        { icon: "📝", label: "블로그", link: "https://blog.naver.com/romy0501_" }
+                    ],
+                    accordions: [
+                        {
+                            title: "🎬 배우 (Actor)",
+                            blocks: [
+                                { type: "button", title: "🟢 네이버 프로필 바로가기", content: "https://search.naver.com/search.naver?where=nexearch&sm=tab_etc&mra=bjky&pkid=1&os=33390505&qvt=0&query=%EC%9D%B4%EC%9D%80%EB%B9%84" },
+                                { type: "list", title: "광고 경력", content: "중흥건설 세종시 중흥S클래스 아파트 광고\n명인제약 이가탄 광고" },
+                                { type: "list", title: "방송/드라마", content: "EBS 교양 메인 타이틀\nEBS 드라마 메인 타이틀\nTVN 드라마 응답하라 1994\nTVN 드라마 혼술남녀" },
+                                { type: "list", title: "단편영화", content: "단편영화 스티커 (다은 役)\n단편영화 엄마의 바다 (수진 役)\n단편영화 John Doe (나연 役)" },
+                                { type: "list", title: "모델 및 특강", content: "CJ 홈쇼핑 ENG 영상 모델\n필립스 LED 바이럴 모델\n빕스 바이럴 모델\n10JAM 바이럴 모델\n토소웅 화장품 모델\n더블유랩 화장품 모델\n천재교육 국어교과서 표지모델\n아이클릭아트 이미지 모델\n인터넷 쇼핑몰 및 보도기사 모델\n서울지역 초등학교 진로교육 배우특강" }
+                            ]
+                        },
+                        {
+                            title: "🔮 타로 (Tarot)",
+                            blocks: [
+                                { type: "text", title: "자격증", content: "타로심리상담사 자격증 보유 (한국문화예술교육협회)" },
+                                { type: "list", title: "경력 리스트", content: "2014년 타로리딩 시작\n홍카페 전화타로 상담 2년\n온라인 타로 강의 진행 5년\n오프라인 타로 강의 진행 2년\n1만건 이상의 온,오프라인 상담 경력\n전국 고등학교, 대학교 대상 축제 부스 다수 운영\n수도권 청소년수련관, 청소년센터 축제 부스 다수 운영" },
+                                { type: "button", title: "오픈채팅 상담하기", content: "https://open.kakao.com/o/snP8CDR" }
+                            ]
+                        },
+                        {
+                            title: "🎙️ 방송 & 커뮤니티",
+                            blocks: [
+                                { type: "button", title: "📺 치지직 방송", content: "https://chzzk.naver.com/0e2647cef57160864e0d6742c56deebd" },
+                                { type: "button", title: "🛍️ 굿즈샵", content: "https://www.coppercompany.ai.kr/25" },
+                                { type: "button", title: "🎨 네이버 OGQ마켓", content: "https://ogqmarket.naver.com/creators/%EC%97%AC%EB%B9%84%EB%B3%84" },
+                                { type: "button", title: "🧸 소품샵 (인스타그램)", content: "https://www.instagram.com/star.bodre?igsh=OHVrNGpuYmU0MGdt" }
+                            ]
+                        },
+                        {
+                            title: "📜 자격증 전체보기",
+                            blocks: [
+                                { type: "list", title: "취득 목록", content: "타로 심리 상담사\n미술 심리 상담사\n음악 심리 상담사\n조주 기능사" }
+                            ]
+                        }
                     ]
                 }
-            ]
-        },
-        copper_ceo: {
-            top: {
-                title: "CEO 철학 및 인사말",
-                quote: "하나의 작은 불씨가 거대한 변화의 물결이 되도록.",
-                text: "카퍼컴퍼니가 내딛는 첫걸음과 우리가 마주한 청년들의 현실은 지금 당장 미약하고 조용해 보일지도 모릅니다. 하지만 우리는 눈앞의 크기보다 그 안에 담긴 무한한 가능성을 믿습니다.\n\n사회적 사각지대에 놓인 이들의 손을 잡고 세상에 퍼뜨리는 우리의 '선한 영향력'은, 머지않아 누구도 무시할 수 없는 창대한 결실과 거대한 상생의 생태계로 증명될 것입니다. 혼자가 아닌 함께 만들어가는 미래, 그 위대한 여정의 시작에 카퍼컴퍼니가 있습니다."
             },
-            tabs: [
-                {
-                    tabName: "AI 맞춤 컨설팅",
-                    title: "🌿 자원절약, 환경보호 (AI 맞춤 컨설팅 의류)",
-                    quote: "불필요한 낭비를 줄이고, 당신의 취향에 도달하는 지속 가능한 패션",
-                    text: "카퍼컴퍼니는 무분별한 의류 생산과 소비에서 벗어나, 고도화된 AI 알고리즘과 정밀 데이터를 기반으로 고객에게 가장 완벽한 '확신'의 스타일만을 제안합니다. 옷을 사고 실패하여 버려지는 탐색 비용과 자원 낭비를 원천적으로 차감(Elimination)함으로써, 환경을 보호하고 패션의 품격을 지키는 미래형 지속 가능 비즈니스를 실현합니다.",
-                    links: "AI 맞춤 컨설팅 홈페이지 링크|#\nAI 맞춤 컨설팅 카카오톡 플친|#\nAI 맞춤 컨설팅 공식 인스타|#"
-                },
-                {
-                    tabName: "청년 예술인 지원",
-                    title: "✨ 작은관심, 응원 (청년 예술인 지원)",
-                    quote: "제도권 밖 사각지대에 놓인 청년 스트리머와 예술인들의 든든한 아군",
-                    text: "현대 미디어의 주역임에도 불구하고 정식 직업으로 인정받지 못해 소외되었던 청년 예술인들에게 필요한 것은, 어쩌면 사회의 '작은 관심'과 따뜻한 '응원'입니다. 카퍼컴퍼니는 어떠한 구속이나 조건 없이 청년들이 자립할 수 있도록 연간 1억 원 규모의 대규모 사회공헌 '스트리머 프로젝트'를 전개합니다. 굿즈 제작 설비 무상 지원, 일러스트 및 마케팅 지원 등을 통해 청년들의 꿈이 현실이 될 수 있도록 가장 든든한 버팀목이 되어줍니다.",
-                    links: "스트리머 프로젝트 홈페이지 링크|#\n프로젝트 지원 링크|#\n치지직 채널 바로가기|#\n공식 유튜브 채널|#\n공식 X (트위터) 채널|#"
+            "Copper_CEO": {
+                type: "type2",
+                title: "프로필 2 (카퍼 CEO)",
+                data: {
+                    top: {
+                        title: "CEO 철학 및 인사말",
+                        quote: "하나의 작은 불씨가 거대한 변화의 물결이 되도록.",
+                        text: "카퍼컴퍼니가 내딛는 첫걸음과 우리가 마주한 청년들의 현실은 지금 당장 미약하고 조용해 보일지도 모릅니다. 하지만 우리는 눈앞의 크기보다 그 안에 담긴 무한한 가능성을 믿습니다.\n\n사회적 사각지대에 놓인 이들의 손을 잡고 세상에 퍼뜨리는 우리의 '선한 영향력'은, 머지않아 누구도 무시할 수 없는 창대한 결실과 거대한 상생의 생태계로 증명될 것입니다. 혼자가 아닌 함께 만들어가는 미래, 그 위대한 여정의 시작에 카퍼컴퍼니가 있습니다."
+                    },
+                    tabs: [
+                        {
+                            tabName: "AI 맞춤 컨설팅",
+                            title: "🌿 자원절약, 환경보호 (AI 맞춤 컨설팅 의류)",
+                            quote: "불필요한 낭비를 줄이고, 당신의 취향에 도달하는 지속 가능한 패션",
+                            imageUrl: "",
+                            text: "카퍼컴퍼니는 무분별한 의류 생산과 소비에서 벗어나, 고도화된 AI 알고리즘과 정밀 데이터를 기반으로 고객에게 가장 완벽한 '확신'의 스타일만을 제안합니다. 옷을 사고 실패하여 버려지는 탐색 비용과 자원 낭비를 원천적으로 차감(Elimination)함으로써, 환경을 보호하고 패션의 품격을 지키는 미래형 지속 가능 비즈니스를 실현합니다.",
+                            links: "AI 맞춤 컨설팅 홈페이지 링크|#\nAI 맞춤 컨설팅 카카오톡 플친|#\nAI 맞춤 컨설팅 공식 인스타|#"
+                        },
+                        {
+                            tabName: "청년 예술인 지원",
+                            title: "✨ 작은관심, 응원 (청년 예술인 지원)",
+                            quote: "제도권 밖 사각지대에 놓인 청년 스트리머와 예술인들의 든든한 아군",
+                            imageUrl: "",
+                            text: "현대 미디어의 주역임에도 불구하고 정식 직업으로 인정받지 못해 소외되었던 청년 예술인들에게 필요한 것은, 어쩌면 사회의 '작은 관심'과 따뜻한 '응원'입니다. 카퍼컴퍼니는 어떠한 구속이나 조건 없이 청년들이 자립할 수 있도록 연간 1억 원 규모의 대규모 사회공헌 '스트리머 프로젝트'를 전개합니다. 굿즈 제작 설비 무상 지원, 일러스트 및 마케팅 지원 등을 통해 청년들의 꿈이 현실이 될 수 있도록 가장 든든한 버팀목이 되어줍니다.",
+                            links: "스트리머 프로젝트 홈페이지 링크|#\n프로젝트 지원 링크|#\n치지직 채널 바로가기|#\n공식 유튜브 채널|#\n공식 X (트위터) 채널|#"
+                        }
+                    ],
+                    footer: {
+                        title: "🛡️ 안전, 미래 세대 (교육 자료 지원)",
+                        quote: "보호받아야 할 아이들의 내일을 지키는 첫걸음",
+                        text: "카퍼컴퍼니는 우리 사회의 가장 취약한 곳에 있는 아동과 청소년들이 안전한 환경에서 올바르게 성장할 수 있도록 배움의 기회를 넓힙니다. 광주광역시 어린이들을 위한 무상 안전교육 자료 지원부터 소년원 출소 청소년들의 사회 복귀를 돕는 교화 안전 교육까지, 미래 세대를 향한 지속적인 교육 지원 사업을 통해 사회적 안전망을 구축하고 더 건강한 공동체를 만들어갑니다."
+                    }
                 }
-            ],
-            footer: {
-                title: "🛡️ 안전, 미래 세대 (교육 자료 지원)",
-                quote: "보호받아야 할 아이들의 내일을 지키는 첫걸음",
-                text: "카퍼컴퍼니는 우리 사회의 가장 취약한 곳에 있는 아동과 청소년들이 안전한 환경에서 올바르게 성장할 수 있도록 배움의 기회를 넓힙니다. 광주광역시 어린이들을 위한 무상 안전교육 자료 지원부터 소년원 출소 청소년들의 사회 복귀를 돕는 교화 안전 교육까지, 미래 세대를 향한 지속적인 교육 지원 사업을 통해 사회적 안전망을 구축하고 더 건강한 공동체를 만들어갑니다."
             }
         }
     };
@@ -265,8 +283,9 @@
     /* ==========================================
        3. 상태 및 헬퍼 함수
        ========================================== */
-    let appData = null; // Supabase에서 불러올 전역 변수
+    let appData = null; 
     let isAdminAuthenticated = false;
+    let currentAdminTab = 'star_bodre'; // 관리자 탭 상태
     const appEl = document.getElementById('app');
 
     function textToListHtml(text) {
@@ -290,9 +309,7 @@
     /* ==========================================
        4. Supabase DB 연동 로직
        ========================================== */
-    // 앱 초기화: DB에서 데이터 불러오기
     async function initApp() {
-        // 로딩 화면 표시
         appEl.innerHTML = `
             <div class="index-screen">
                 <h1 style="font-size:22px; margin-bottom:12px; color:#111;">데이터 로딩 중...</h1>
@@ -301,7 +318,6 @@
         `;
         
         try {
-            // DB에서 가져오기
             const { data, error } = await supabaseClient
                 .from('profile_settings')
                 .select('data')
@@ -310,32 +326,44 @@
             
             if (error) throw error;
 
-            // 데이터가 유효하면 appData에 할당, 아니면 기본값 사용 후 서버에 덮어쓰기
-            if (data && data.data && Object.keys(data.data).length > 0 && data.data.version === defaultData.version) {
+            if (data && data.data && Object.keys(data.data).length > 0) {
                 appData = data.data;
+                // v4 이전 데이터 마이그레이션
+                if (!appData.version || appData.version < 4 || !appData.profiles) {
+                    appData = {
+                        version: 4,
+                        profiles: {
+                            "star_bodre": { type: "type1", title: "프로필 1", data: appData.star_bodre || defaultData.profiles.star_bodre.data },
+                            "Copper_CEO": { type: "type2", title: "프로필 2", data: appData.copper_ceo || defaultData.profiles.Copper_CEO.data }
+                        }
+                    };
+                    await saveToSupabase(appData, false);
+                }
             } else {
                 appData = JSON.parse(JSON.stringify(defaultData));
                 await saveToSupabase(appData, false);
             }
         } catch (err) {
             console.error('DB 불러오기 에러:', err);
-            // 에러 발생 시 임시로 기본 데이터 사용
             appData = JSON.parse(JSON.stringify(defaultData));
-            // 만약 테이블에 데이터가 아예 없어서 발생한 에러(PGRST116)라면 초기 데이터 생성
             if (err.code === 'PGRST116') {
                 await saveToSupabase(appData, false);
             }
         }
+        
+        // 현재 해시 기반 탭 설정
+        let hash = window.location.hash.substring(1);
+        if(appData && appData.profiles && appData.profiles[hash]) {
+            currentAdminTab = hash;
+        }
 
-        // 로딩이 끝나면 현재 해시에 맞춰 렌더링
         router();
     }
 
-    // 서버로 데이터 저장 함수
     async function saveToSupabase(dataObj, showAlert = true) {
         const { error } = await supabaseClient
             .from('profile_settings')
-            .upsert({ id: 1, data: dataObj }); // update 대신 upsert (없으면 생성, 있으면 수정)
+            .upsert({ id: 1, data: dataObj }); 
             
         if (error) {
             console.error('DB 저장 에러:', error);
@@ -359,15 +387,15 @@
                 </p>
 
                 <div style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:280px; margin-top:30px;">
-                    <!-- 버튼들이 제거되었습니다. URL에 올바른 해시값을 직접 입력하여 접속하세요. -->
+                    <!-- URL에 직접 해시값을 입력하여 접속 -->
                 </div>
             </div>
         `;
     }
 
-    function renderStarBodre() {
+    // Type 1: 아코디언 스타일 (스타 보드레형)
+    function renderType1(d) {
         document.body.className = 'theme-light';
-        const d = appData.star_bodre;
         
         let contactsHtml = d.contacts.map(c => `
             <a href="${c.link}" target="_blank" class="contact-icon"><i>${c.icon}</i><span>${c.label}</span></a>
@@ -382,6 +410,13 @@
                         <div class="block-text">
                             ${b.title ? `<b>${b.title}</b>` : ''}
                             <ul class="custom-list">${textToListHtml(b.content)}</ul>
+                        </div>
+                    `;
+                } else if (b.type === 'image') {
+                    return `
+                        <div class="block-text">
+                            ${b.title ? `<b style="display:block; margin-bottom:10px;">${b.title}</b>` : ''}
+                            <img src="${b.content}" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;" alt="이미지">
                         </div>
                     `;
                 } else { // text
@@ -426,9 +461,9 @@
         if (!isOpen) content.classList.add('open');
     };
 
-    function renderCopperCEO() {
+    // Type 2: 탭 스타일 (카퍼 CEO형)
+    function renderType2(d) {
         document.body.className = 'theme-beige';
-        const d = appData.copper_ceo;
 
         const renderLinks = (linkString) => {
             if(!linkString) return '';
@@ -442,17 +477,20 @@
             <button class="tab-btn ${i===0?'active':''}" onclick="switchTab('tab-${i}', this)">${tab.tabName}</button>
         `).join('');
 
-        let tabsContentHtml = d.tabs.map((tab, i) => `
+        let tabsContentHtml = d.tabs.map((tab, i) => {
+            let imgHtml = tab.imageUrl ? `<img src="${tab.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="탭 이미지">` : '';
+            return `
             <div id="tab-${i}" class="section tab-content ${i===0?'active':''}">
                 <div class="card">
                     <h2 style="font-size: 18px; margin-bottom: 10px;">${tab.title}</h2>
                     <div class="quote-box" style="font-size:13px; text-align:left;">"${tab.quote}"</div>
+                    ${imgHtml}
                     <p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(tab.text)}</p>
-                    <div class="video-widget"><span>🎥 위젯/영상 영역</span></div>
                     <div class="link-list">${renderLinks(tab.links)}</div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
 
         appEl.innerHTML = `
             <div class="header" style="padding-bottom: 0;">
@@ -499,28 +537,67 @@
             renderAdmin();
         }
     }
-    window.addContact = function() {
-        appData.star_bodre.contacts.push({ icon: "🔗", label: "새 링크", link: "#" });
+    
+    // Type 1 관리자 함수
+    window.addContact = function(pKey) {
+        appData.profiles[pKey].data.contacts.push({ icon: "🔗", label: "새 링크", link: "#" });
         renderAdmin();
     }
-    window.addAccordion = function() {
-        appData.star_bodre.accordions.push({ title: "새 카테고리 (대제목)", blocks: [] });
+    window.addAccordion = function(pKey) {
+        appData.profiles[pKey].data.accordions.push({ title: "새 카테고리 (대제목)", blocks: [] });
         renderAdmin();
     }
-    window.addBlock = function(accIndex) {
-        const type = prompt("추가할 내용의 형식을 영어로 입력하세요.\n(text = 일반 텍스트, list = 글머리 목록, button = 링크 버튼)", "text");
-        if(type === 'text' || type === 'list' || type === 'button') {
-            appData.star_bodre.accordions[accIndex].blocks.push({ type: type, title: "소제목 (또는 버튼명)", content: "내용을 입력하세요" });
+    window.addBlock = function(pKey, accIndex) {
+        const type = prompt("추가할 내용의 형식을 영어로 입력하세요.\n(text = 일반텍스트, list = 글머리목록, button = 링크버튼, image = 이미지)", "text");
+        if(['text', 'list', 'button', 'image'].includes(type)) {
+            appData.profiles[pKey].data.accordions[accIndex].blocks.push({ type: type, title: type==='button'?'버튼명':(type==='image'?'이미지설명(선택)':'소제목(선택)'), content: type==='image'?"이미지URL을넣으세요":"내용" });
             renderAdmin();
         } else if (type !== null) {
-            alert('text, list, button 중 하나만 입력 가능합니다.');
+            alert('text, list, button, image 중 하나만 입력 가능합니다.');
         }
     }
-    window.addTab = function() {
-        appData.copper_ceo.tabs.push({
-            tabName: "새 탭 버튼", title: "섹션 제목", quote: "인용구", text: "본문 내용", links: "버튼명|#"
+    
+    // Type 2 관리자 함수
+    window.addTabContent = function(pKey) {
+        appData.profiles[pKey].data.tabs.push({
+            tabName: "새 탭 버튼", title: "섹션 제목", quote: "인용구", imageUrl: "", text: "본문 내용", links: "버튼명|#"
         });
         renderAdmin();
+    }
+
+    // 새 프로필 추가
+    window.addNewProfile = function() {
+        const pId = prompt("새 프로필의 고유 주소(영문/숫자)를 입력하세요.\n예: my_profile (접속시 #my_profile 로 접속됨)");
+        if (!pId) return;
+        if (appData.profiles[pId]) { alert("이미 존재하는 주소입니다."); return; }
+        
+        const pType = prompt("어떤 테마로 만드시겠습니까?\n1 입력: 기본 목록형(프로필1 스타일)\n2 입력: 탭 형식(프로필2 스타일)", "1");
+        const pName = prompt("관리자 페이지에 표시될 프로필 이름을 입력하세요.", "새 프로필");
+        
+        if (pType === '1') {
+            appData.profiles[pId] = { type: 'type1', title: pName || pId, data: JSON.parse(JSON.stringify(defaultData.profiles.star_bodre.data)) };
+        } else if (pType === '2') {
+            appData.profiles[pId] = { type: 'type2', title: pName || pId, data: JSON.parse(JSON.stringify(defaultData.profiles.Copper_CEO.data)) };
+        } else {
+            alert("1 또는 2만 입력 가능합니다.");
+            return;
+        }
+        
+        currentAdminTab = pId;
+        renderAdmin();
+    }
+    
+    // 프로필 삭제
+    window.deleteProfile = function(pKey) {
+        if(Object.keys(appData.profiles).length <= 1) {
+            alert("최소 1개의 프로필은 유지해야 합니다.");
+            return;
+        }
+        if(confirm(`정말로 '${appData.profiles[pKey].title}' 프로필을 완전히 삭제하시겠습니까?`)) {
+            delete appData.profiles[pKey];
+            currentAdminTab = Object.keys(appData.profiles)[0];
+            renderAdmin();
+        }
     }
 
     function renderAdmin() {
@@ -538,153 +615,179 @@
             return;
         }
 
-        let html = `
-            <div class="header">
+        // 프로필 탭 (접기 대신 탭 형식 전환)
+        let tabsHtml = `<div class="admin-tabs-row">`;
+        for (let key in appData.profiles) {
+            let activeCls = (currentAdminTab === key) ? 'active' : 'inactive';
+            tabsHtml += `<button class="${activeCls}" onclick="currentAdminTab='${key}'; renderAdmin()">${appData.profiles[key].title}</button>`;
+        }
+        tabsHtml += `<button class="add-btn" onclick="addNewProfile()">+ 새 프로필 추가</button>`;
+        tabsHtml += `</div>`;
+
+        let contentHtml = '';
+        let pKey = currentAdminTab;
+        if (appData.profiles[pKey]) {
+            let p = appData.profiles[pKey];
+            contentHtml = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                    <h3 style="color:#333; margin:0;">${p.title} <span style="font-size:13px; color:#888; font-weight:normal;">(접속주소: #${pKey})</span></h3>
+                    <button class="del" onclick="deleteProfile('${pKey}')" style="background:#ff4d4f; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:13px;">이 프로필 삭제</button>
+                </div>
+            `;
+            
+            if (p.type === 'type1') {
+                contentHtml += renderAdminType1(pKey, p.data);
+            } else if (p.type === 'type2') {
+                contentHtml += renderAdminType2(pKey, p.data);
+            }
+        }
+
+        appEl.innerHTML = `
+            <div class="header" style="padding-bottom:10px;">
                 <h1 style="color:var(--accent);">관리자 패널</h1>
-                <p>항목을 자유롭게 추가, 삭제, 이동할 수 있습니다. 수정한 후 하단의 저장 버튼을 누르세요.</p>
+                <p>상단의 탭을 선택하여 각 프로필을 관리하세요.</p>
             </div>
             <div class="section">
-        `;
-
-        html += `
-            <div class="admin-group open">
-                <div class="admin-group-header" onclick="this.parentElement.classList.toggle('open')">🌟 프로필 1 (기본 정보 및 연락처) <span>▼</span></div>
-                <div class="admin-group-body">
-                    <div class="admin-form-group">
-                        <label>이름</label>
-                        <input type="text" value="${appData.star_bodre.name}" oninput="setVal('star_bodre.name', this.value)">
-                    </div>
-                    <div class="admin-form-group">
-                        <label>타이틀/부제목</label>
-                        <input type="text" value="${appData.star_bodre.subtitle}" oninput="setVal('star_bodre.subtitle', this.value)">
-                    </div>
-                    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/>
-                    <h4 style="margin-bottom:10px;">연락처 및 SNS 링크 목록</h4>
-        `;
-        appData.star_bodre.contacts.forEach((c, i) => {
-            html += `
-                <div class="admin-list-item">
-                    <div class="admin-controls">
-                        <button onclick="arrMove('star_bodre.contacts', ${i}, -1)">▲ 위로</button>
-                        <button onclick="arrMove('star_bodre.contacts', ${i}, 1)">▼ 아래로</button>
-                        <button class="del" onclick="arrDel('star_bodre.contacts', ${i})">삭제</button>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" style="width:60px;" placeholder="아이콘" value="${c.icon}" oninput="setVal('star_bodre.contacts.${i}.icon', this.value)">
-                        <input type="text" style="width:90px;" placeholder="라벨명" value="${c.label}" oninput="setVal('star_bodre.contacts.${i}.label', this.value)">
-                        <input type="text" style="flex:1;" placeholder="URL 링크" value="${c.link}" oninput="setVal('star_bodre.contacts.${i}.link', this.value)">
-                    </div>
-                </div>
-            `;
-        });
-        html += `<button class="btn-add" onclick="addContact()">+ 연락처/SNS 아이콘 추가</button>
-                </div></div>`;
-
-        html += `
-            <div class="admin-group">
-                <div class="admin-group-header" onclick="this.parentElement.classList.toggle('open')">📂 프로필 1 (카테고리 내용 자유 수정) <span>▼</span></div>
-                <div class="admin-group-body">
-        `;
-        appData.star_bodre.accordions.forEach((acc, i) => {
-            html += `
-                <div class="admin-list-item" style="border-color:#aaa; background:#fff;">
-                    <div class="admin-controls">
-                        <span style="margin-right:auto; font-weight:bold; color:#0066cc;">[카테고리 대제목 블록]</span>
-                        <button onclick="arrMove('star_bodre.accordions', ${i}, -1)">▲ 위로</button>
-                        <button onclick="arrMove('star_bodre.accordions', ${i}, 1)">▼ 아래로</button>
-                        <button class="del" onclick="arrDel('star_bodre.accordions', ${i})">카테고리 삭제</button>
-                    </div>
-                    <div class="admin-form-group">
-                        <label>카테고리 대제목</label>
-                        <input type="text" value="${acc.title}" oninput="setVal('star_bodre.accordions.${i}.title', this.value)">
-                    </div>
-                    <div style="padding:10px; background:#f5f7fa; border-radius:8px; margin-top:15px; border:1px solid #e1e4e8;">
-                        <label style="font-size:13px; font-weight:bold; margin-bottom:10px; display:block; color:#444;">내부 상세 내용들</label>
-            `;
-            acc.blocks.forEach((block, bIdx) => {
-                const typeName = block.type === 'button' ? '버튼' : (block.type === 'list' ? '목록형' : '일반텍스트');
-                html += `
-                    <div class="admin-list-item" style="background:#fff; border-color:#dcdcdc;">
-                        <div class="admin-controls">
-                            <span style="margin-right:auto; font-size:11px; background:#e1e1e1; padding:3px 6px; border-radius:4px; font-weight:bold;">${typeName}</span>
-                            <button onclick="arrMove('star_bodre.accordions.${i}.blocks', ${bIdx}, -1)">위로</button>
-                            <button onclick="arrMove('star_bodre.accordions.${i}.blocks', ${bIdx}, 1)">아래로</button>
-                            <button class="del" onclick="arrDel('star_bodre.accordions.${i}.blocks', ${bIdx})">삭제</button>
-                        </div>
-                        <div class="admin-form-group">
-                            <label>${block.type==='button'?'버튼에 쓰일 글자':'소제목 (선택사항, 비워도 됨)'}</label>
-                            <input type="text" value="${block.title}" oninput="setVal('star_bodre.accordions.${i}.blocks.${bIdx}.title', this.value)">
-                        </div>
-                        <div class="admin-form-group">
-                            <label>${block.type==='button'?'이동할 URL 주소':'본문 내용 (엔터 키로 줄바꿈 구분)'}</label>
-                            ${block.type==='button' 
-                                ? `<input type="text" value="${block.content}" oninput="setVal('star_bodre.accordions.${i}.blocks.${bIdx}.content', this.value)">`
-                                : `<textarea oninput="setVal('star_bodre.accordions.${i}.blocks.${bIdx}.content', this.value)">${block.content}</textarea>`
-                            }
-                        </div>
-                    </div>
-                `;
-            });
-            html += `
-                        <button class="btn-add" style="background:#fff;" onclick="addBlock(${i})">+ 이 카테고리 안에 내용 추가</button>
-                    </div>
-                </div>
-            `;
-        });
-        html += `<button class="btn" style="background:#333;" onclick="addAccordion()">+ 완전히 새로운 카테고리 추가</button>
-                </div></div>`;
-
-        html += `
-            <div class="admin-group">
-                <div class="admin-group-header" onclick="this.parentElement.classList.toggle('open')">💼 프로필 2 (탭 메뉴 추가 및 수정) <span>▼</span></div>
-                <div class="admin-group-body">
-                    <h4 style="margin-bottom:10px;">상단 고정 영역</h4>
-                    <div class="admin-form-group"><label>대제목</label><input type="text" value="${appData.copper_ceo.top.title}" oninput="setVal('copper_ceo.top.title', this.value)"></div>
-                    <div class="admin-form-group"><label>인용구 (기울임 꼴)</label><input type="text" value="${appData.copper_ceo.top.quote}" oninput="setVal('copper_ceo.top.quote', this.value)"></div>
-                    <div class="admin-form-group"><label>본문</label><textarea oninput="setVal('copper_ceo.top.text', this.value)">${appData.copper_ceo.top.text}</textarea></div>
-                    
-                    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/>
-                    <h4 style="margin-bottom:10px;">중앙 탭 영역 관리</h4>
-        `;
-        appData.copper_ceo.tabs.forEach((tab, i) => {
-            html += `
-                <div class="admin-list-item" style="border-color:#b5815e;">
-                    <div class="admin-controls">
-                        <span style="margin-right:auto; font-weight:bold; color:#b5815e;">탭 콘텐츠 ${i+1}</span>
-                        <button onclick="arrMove('copper_ceo.tabs', ${i}, -1)">▲ 위로</button>
-                        <button onclick="arrMove('copper_ceo.tabs', ${i}, 1)">▼ 아래로</button>
-                        <button class="del" onclick="arrDel('copper_ceo.tabs', ${i})">이 탭 삭제</button>
-                    </div>
-                    <div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('copper_ceo.tabs.${i}.tabName', this.value)"></div>
-                    <div class="admin-form-group"><label>내용 대제목</label><input type="text" value="${tab.title}" oninput="setVal('copper_ceo.tabs.${i}.title', this.value)"></div>
-                    <div class="admin-form-group"><label>내용 인용구</label><input type="text" value="${tab.quote}" oninput="setVal('copper_ceo.tabs.${i}.quote', this.value)"></div>
-                    <div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('copper_ceo.tabs.${i}.text', this.value)">${tab.text}</textarea></div>
-                    <div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태로 줄바꿈 기입)</label><textarea oninput="setVal('copper_ceo.tabs.${i}.links', this.value)">${tab.links}</textarea></div>
-                </div>
-            `;
-        });
-        html += `
-                    <button class="btn-add" onclick="addTab()">+ 새 탭 콘텐츠 추가</button>
-                    
-                    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/>
-                    <h4 style="margin-bottom:10px;">하단 고정 영역</h4>
-                    <div class="admin-form-group"><label>제목</label><input type="text" value="${appData.copper_ceo.footer.title}" oninput="setVal('copper_ceo.footer.title', this.value)"></div>
-                    <div class="admin-form-group"><label>인용구</label><input type="text" value="${appData.copper_ceo.footer.quote}" oninput="setVal('copper_ceo.footer.quote', this.value)"></div>
-                    <div class="admin-form-group"><label>본문</label><textarea oninput="setVal('copper_ceo.footer.text', this.value)">${appData.copper_ceo.footer.text}</textarea></div>
-                </div>
-            </div>
-        `;
-
-        html += `
-                <div style="position: sticky; bottom: 20px; z-index: 100;">
+                ${tabsHtml}
+                ${contentHtml}
+                <div style="position: sticky; bottom: 20px; z-index: 100; margin-top:30px;">
                     <button class="btn" onclick="saveDataFinal(this)" style="font-size:16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">💾 서버에 영구 저장하기</button>
                 </div>
                 <button class="btn btn-outline" onclick="resetDefaultData()" style="margin-top:20px; color:#d32f2f; border-color:#d32f2f;">DB 완전 초기화</button>
             </div>
             <br/><br/>
         `;
+    }
 
-        appEl.innerHTML = html;
+    function renderAdminType1(pKey, d) {
+        let html = `
+            <div class="admin-group open">
+                <div class="admin-group-header" style="background:#f1f5f9; color:#333;">🌟 기본 정보 및 연락처</div>
+                <div class="admin-group-body">
+                    <div class="admin-form-group"><label>이름</label><input type="text" value="${d.name}" oninput="setVal('profiles.${pKey}.data.name', this.value)"></div>
+                    <div class="admin-form-group"><label>타이틀/부제목</label><input type="text" value="${d.subtitle}" oninput="setVal('profiles.${pKey}.data.subtitle', this.value)"></div>
+                    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/>
+                    <h4 style="margin-bottom:10px;">연락처 및 SNS 링크 목록</h4>
+        `;
+        d.contacts.forEach((c, i) => {
+            html += `
+                <div class="admin-list-item">
+                    <div class="admin-controls">
+                        <button onclick="arrMove('profiles.${pKey}.data.contacts', ${i}, -1)">▲ 위로</button>
+                        <button onclick="arrMove('profiles.${pKey}.data.contacts', ${i}, 1)">▼ 아래로</button>
+                        <button class="del" onclick="arrDel('profiles.${pKey}.data.contacts', ${i})">삭제</button>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" style="width:60px;" placeholder="아이콘" value="${c.icon}" oninput="setVal('profiles.${pKey}.data.contacts.${i}.icon', this.value)">
+                        <input type="text" style="width:90px;" placeholder="라벨명" value="${c.label}" oninput="setVal('profiles.${pKey}.data.contacts.${i}.label', this.value)">
+                        <input type="text" style="flex:1;" placeholder="URL 링크" value="${c.link}" oninput="setVal('profiles.${pKey}.data.contacts.${i}.link', this.value)">
+                    </div>
+                </div>
+            `;
+        });
+        html += `<button class="btn-add" onclick="addContact('${pKey}')">+ 연락처/SNS 아이콘 추가</button></div></div>`;
+
+        html += `
+            <div class="admin-group open">
+                <div class="admin-group-header" style="background:#f1f5f9; color:#333;">📂 카테고리 및 패널 내용 수정</div>
+                <div class="admin-group-body">
+        `;
+        d.accordions.forEach((acc, i) => {
+            html += `
+                <div class="admin-list-item" style="border-color:#aaa; background:#fff;">
+                    <div class="admin-controls">
+                        <span style="margin-right:auto; font-weight:bold; color:#0066cc;">[카테고리 대제목 블록]</span>
+                        <button onclick="arrMove('profiles.${pKey}.data.accordions', ${i}, -1)">▲ 위로</button>
+                        <button onclick="arrMove('profiles.${pKey}.data.accordions', ${i}, 1)">▼ 아래로</button>
+                        <button class="del" onclick="arrDel('profiles.${pKey}.data.accordions', ${i})">카테고리 삭제</button>
+                    </div>
+                    <div class="admin-form-group">
+                        <label>카테고리 대제목</label>
+                        <input type="text" value="${acc.title}" oninput="setVal('profiles.${pKey}.data.accordions.${i}.title', this.value)">
+                    </div>
+                    <div style="padding:10px; background:#f5f7fa; border-radius:8px; margin-top:15px; border:1px solid #e1e4e8;">
+                        <label style="font-size:13px; font-weight:bold; margin-bottom:10px; display:block; color:#444;">내부 상세 내용 (패널)</label>
+            `;
+            acc.blocks.forEach((block, bIdx) => {
+                const typeName = block.type === 'button' ? '버튼' : (block.type === 'list' ? '목록형' : (block.type === 'image' ? '이미지' : '일반텍스트'));
+                html += `
+                    <div class="admin-list-item" style="background:#fff; border-color:#dcdcdc;">
+                        <div class="admin-controls">
+                            <span style="margin-right:auto; font-size:11px; background:#e1e1e1; padding:3px 6px; border-radius:4px; font-weight:bold;">${typeName}</span>
+                            <button onclick="arrMove('profiles.${pKey}.data.accordions.${i}.blocks', ${bIdx}, -1)">위로</button>
+                            <button onclick="arrMove('profiles.${pKey}.data.accordions.${i}.blocks', ${bIdx}, 1)">아래로</button>
+                            <button class="del" onclick="arrDel('profiles.${pKey}.data.accordions.${i}.blocks', ${bIdx})">삭제</button>
+                        </div>
+                        <div class="admin-form-group">
+                            <label>${block.type==='button'?'버튼에 쓰일 글자':(block.type==='image'?'이미지 설명(선택)':'소제목(선택)')}</label>
+                            <input type="text" value="${block.title}" oninput="setVal('profiles.${pKey}.data.accordions.${i}.blocks.${bIdx}.title', this.value)">
+                        </div>
+                        <div class="admin-form-group">
+                            <label>${block.type==='button'?'이동할 URL 주소':(block.type==='image'?'이미지 URL (http://...)':'본문 내용')}</label>
+                            ${(block.type==='button' || block.type==='image') 
+                                ? `<input type="text" value="${block.content}" oninput="setVal('profiles.${pKey}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">`
+                                : `<textarea oninput="setVal('profiles.${pKey}.data.accordions.${i}.blocks.${bIdx}.content', this.value)">${block.content}</textarea>`
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+            html += `
+                        <button class="btn-add" style="background:#fff;" onclick="addBlock('${pKey}', ${i})">+ 이 카테고리 안에 내용/이미지 추가</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += `<button class="btn" style="background:#333;" onclick="addAccordion('${pKey}')">+ 완전히 새로운 카테고리 추가</button></div></div>`;
+        return html;
+    }
+
+    function renderAdminType2(pKey, d) {
+        let html = `
+            <div class="admin-group open">
+                <div class="admin-group-header" style="background:#f1f5f9; color:#333;">💼 상/하단 고정 영역 수정</div>
+                <div class="admin-group-body">
+                    <h4 style="margin-bottom:10px;">상단 고정 영역</h4>
+                    <div class="admin-form-group"><label>대제목</label><input type="text" value="${d.top.title}" oninput="setVal('profiles.${pKey}.data.top.title', this.value)"></div>
+                    <div class="admin-form-group"><label>인용구 (기울임 꼴)</label><input type="text" value="${d.top.quote}" oninput="setVal('profiles.${pKey}.data.top.quote', this.value)"></div>
+                    <div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profiles.${pKey}.data.top.text', this.value)">${d.top.text}</textarea></div>
+                    
+                    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;"/>
+                    <h4 style="margin-bottom:10px;">하단 고정 영역</h4>
+                    <div class="admin-form-group"><label>제목</label><input type="text" value="${d.footer.title}" oninput="setVal('profiles.${pKey}.data.footer.title', this.value)"></div>
+                    <div class="admin-form-group"><label>인용구</label><input type="text" value="${d.footer.quote}" oninput="setVal('profiles.${pKey}.data.footer.quote', this.value)"></div>
+                    <div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profiles.${pKey}.data.footer.text', this.value)">${d.footer.text}</textarea></div>
+                </div>
+            </div>
+            
+            <div class="admin-group open">
+                <div class="admin-group-header" style="background:#f1f5f9; color:#333;">중앙 탭 영역 관리 (내용 및 이미지)</div>
+                <div class="admin-group-body">
+        `;
+        d.tabs.forEach((tab, i) => {
+            html += `
+                <div class="admin-list-item" style="border-color:#b5815e;">
+                    <div class="admin-controls">
+                        <span style="margin-right:auto; font-weight:bold; color:#b5815e;">탭 콘텐츠 ${i+1}</span>
+                        <button onclick="arrMove('profiles.${pKey}.data.tabs', ${i}, -1)">▲ 위로</button>
+                        <button onclick="arrMove('profiles.${pKey}.data.tabs', ${i}, 1)">▼ 아래로</button>
+                        <button class="del" onclick="arrDel('profiles.${pKey}.data.tabs', ${i})">이 탭 삭제</button>
+                    </div>
+                    <div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('profiles.${pKey}.data.tabs.${i}.tabName', this.value)"></div>
+                    <div class="admin-form-group"><label>내용 대제목</label><input type="text" value="${tab.title}" oninput="setVal('profiles.${pKey}.data.tabs.${i}.title', this.value)"></div>
+                    <div class="admin-form-group"><label>내용 인용구</label><input type="text" value="${tab.quote}" oninput="setVal('profiles.${pKey}.data.tabs.${i}.quote', this.value)"></div>
+                    <div class="admin-form-group"><label>패널 이미지 주소 (선택, http://...)</label><input type="text" value="${tab.imageUrl || ''}" oninput="setVal('profiles.${pKey}.data.tabs.${i}.imageUrl', this.value)"></div>
+                    <div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profiles.${pKey}.data.tabs.${i}.text', this.value)">${tab.text}</textarea></div>
+                    <div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태로 줄바꿈 기입)</label><textarea oninput="setVal('profiles.${pKey}.data.tabs.${i}.links', this.value)">${tab.links}</textarea></div>
+                </div>
+            `;
+        });
+        html += `
+                    <button class="btn-add" onclick="addTabContent('${pKey}')">+ 새 탭 콘텐츠 추가</button>
+                </div>
+            </div>
+        `;
+        return html;
     }
 
     window.checkPwd = function() {
@@ -694,20 +797,16 @@
     };
 
     window.saveDataFinal = async function(btnEl) {
-        // 모든 입력값을 최신 상태로 appData에 강제 동기화
         document.querySelectorAll('.admin-input, input[type="text"], textarea').forEach(el => {
-            const path = el.getAttribute('oninput')?.match(/'([^']+)'/)?.[1];
-            if(path) {
-                setVal(path, el.value);
-            }
+            const pathMatch = el.getAttribute('oninput')?.match(/'([^']+)'/);
+            if(pathMatch) setVal(pathMatch[1], el.value);
         });
 
-        // 저장 중 버튼 클릭 방지 (중복 전송 방지)
         const originalText = btnEl.innerText;
         btnEl.innerText = "⏳ 통신 중...";
         btnEl.disabled = true;
 
-        await saveToSupabase(appData, true); // 서버로 전송
+        await saveToSupabase(appData, true); 
 
         btnEl.innerText = originalText;
         btnEl.disabled = false;
@@ -726,17 +825,24 @@
        7. 라우팅 로직 (Hash Router)
        ========================================== */
     function router() {
-        if (!appData) return; // 데이터가 아직 불러와지지 않았으면 렌더링 중단
+        if (!appData) return; 
 
-        const hash = window.location.hash;
+        const hash = window.location.hash.substring(1);
         
         appEl.style.opacity = '0';
         
         setTimeout(() => {
-            if (hash === '#Copper_CEO') renderCopperCEO();
-            else if (hash === '#star_bodre') renderStarBodre();
-            else if (hash === '#admin') renderAdmin();
-            else renderIndex();
+            if (hash === 'admin') {
+                renderAdmin();
+            } else if (!hash) {
+                renderIndex();
+            } else if (appData.profiles && appData.profiles[hash]) {
+                const p = appData.profiles[hash];
+                if (p.type === 'type1') renderType1(p.data);
+                else if (p.type === 'type2') renderType2(p.data);
+            } else {
+                renderIndex();
+            }
             
             appEl.style.opacity = '1';
             window.scrollTo(0, 0);
@@ -748,12 +854,7 @@
         router();
     };
 
-    // 해시가 바뀌면 바로바로 화면 교체
     window.addEventListener('hashchange', router);
-    
-    // 브라우저 켜지면 무조건 DB 연동(initApp)부터 시작
     window.addEventListener('DOMContentLoaded', initApp);
 
 </script>
-</body>
-</html>
