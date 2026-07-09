@@ -383,7 +383,12 @@
                 let tabsBtnHtml = (acc.tabs||[]).map((tab, i) => `<button class="tab-btn ${i===0?'active':''}" onclick="switchTab('tab-${sIdx}-${i}', this, ${sIdx})">${tab.tabName}</button>`).join('');
                 let tabsContentHtml = (acc.tabs||[]).map((tab, i) => {
                     let imgHtml = tab.imageUrl ? `<img src="${tab.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="탭 이미지">` : '';
-                    return `<div id="tab-${sIdx}-${i}" class="tab-content-${sIdx} tab-content ${i===0?'active':''}"><div class="card"><h2 style="font-size: 18px; margin-bottom: 10px;">${tab.title}</h2>${tab.quote ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${tab.quote}"</div>` : ''}${imgHtml}<p style="font-size: 14px; color: inherit; opacity:0.9; line-height: 1.6; margin-bottom:15px;">${formatTextToBr(tab.text)}</p><div class="link-list">${renderLinks(tab.links)}</div></div></div>`;
+                    let mainTitle = tab.title ? `<h2 style="font-size: 18px; margin-bottom: 10px;">${tab.title}</h2>` : '';
+                    let mainQuote = tab.quote && tab.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${tab.quote}"</div>` : '';
+                    let mainText = tab.text && tab.text.trim() !== '' ? `<p style="font-size: 14px; color: inherit; opacity:0.9; line-height: 1.6; margin-bottom:15px;">${formatTextToBr(tab.text)}</p>` : '';
+                    let linkListHtml = tab.links && tab.links.trim() !== '' ? `<div class="link-list" style="margin-top: 15px; margin-bottom: 15px;">${renderLinks(tab.links)}</div>` : '';
+                    
+                    return `<div id="tab-${sIdx}-${i}" class="tab-content-${sIdx} tab-content ${i===0?'active':''}"><div class="card">${mainTitle}${mainQuote}${imgHtml}${mainText}${linkListHtml}</div></div>`;
                 }).join('');
                 return `<div style="margin-bottom:20px;"><div class="tabs-container">${tabsBtnHtml}</div>${tabsContentHtml}</div>`;
             } else {
@@ -420,12 +425,22 @@
             let imgHtml = tab.imageUrl ? `<img src="${tab.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="탭 이미지">` : '';
             let blocksHtml = '';
             if (tab.blocks && tab.blocks.length > 0) {
-                blocksHtml = '<div style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">' + tab.blocks.map(b => {
+                const hasMainContent = tab.title || (tab.quote && tab.quote.trim() !== '') || (tab.text && tab.text.trim() !== '') || tab.imageUrl || (tab.links && tab.links.trim() !== '');
+                blocksHtml = '<div style="' + (hasMainContent ? 'margin-top:30px; padding-top:30px; border-top:1px solid #eee;' : '') + '">' + tab.blocks.map(b => {
                     let bImg = b.imageUrl ? `<img src="${b.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="서브 탭 이미지">` : '';
-                    return `<div style="margin-bottom:25px;"><h3 style="font-size: 16px; margin-bottom: 8px; color:var(--accent);">${b.title}</h3>${b.quote ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${b.quote}"</div>` : ''}${bImg}<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(b.text)}</p></div>`;
+                    let bTitle = b.title ? `<h3 style="font-size: 16px; margin-bottom: 8px; color:var(--accent);">${b.title}</h3>` : '';
+                    let bQuote = b.quote && b.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${b.quote}"</div>` : '';
+                    let bText = b.text && b.text.trim() !== '' ? `<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(b.text)}</p>` : '';
+                    return `<div style="margin-bottom:25px;">${bTitle}${bQuote}${bImg}${bText}</div>`;
                 }).join('') + '</div>';
             }
-            return `<div id="tab-${i}" class="section tab-content ${i===0?'active':''}"><div class="card"><h2 style="font-size: 18px; margin-bottom: 10px;">${tab.title}</h2><div class="quote-box" style="font-size:13px; text-align:left;">"${tab.quote}"</div>${imgHtml}<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(tab.text)}</p><div class="link-list">${renderLinks(tab.links)}</div>${blocksHtml}</div></div>`;
+            
+            let mainTitle = tab.title ? `<h2 style="font-size: 18px; margin-bottom: 10px;">${tab.title}</h2>` : '';
+            let mainQuote = tab.quote && tab.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${tab.quote}"</div>` : '';
+            let mainText = tab.text && tab.text.trim() !== '' ? `<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(tab.text)}</p>` : '';
+            let linkListHtml = tab.links && tab.links.trim() !== '' ? `<div class="link-list" style="margin-top: 15px; margin-bottom: 15px;">${renderLinks(tab.links)}</div>` : '';
+
+            return `<div id="tab-${i}" class="section tab-content ${i===0?'active':''}"><div class="card">${mainTitle}${mainQuote}${imgHtml}${mainText}${linkListHtml}${blocksHtml}</div></div>`;
         }).join('');
 
         appEl.innerHTML = `
