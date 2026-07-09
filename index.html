@@ -385,7 +385,7 @@
     async function saveToSupabase(dataObj, showAlert = true) {
         const { error } = await supabaseClient.from('profile_settings').upsert({ id: 1, data: dataObj }); 
         if (error) { console.error('DB 저장 에러:', error); if (showAlert) alert('서버 저장 중 오류가 발생했습니다: ' + error.message); } 
-        else { if (showAlert) alert('서버(Supabase)에 성공적으로 저장되었습니다!'); }
+        else { if (showAlert) alert('서버에 성공적으로 저장되었습니다!'); }
     }
 
     function renderIndex() {
