@@ -310,6 +310,44 @@
                     appData.version = 7;
                     await saveToSupabase(appData, false);
                 }
+                
+                // v8 마이그레이션 (메인 카테고리와 서브 카테고리를 동급으로 통합)
+                if (!appData.version || appData.version < 8) {
+                    if (appData.profileList) {
+                        appData.profileList.forEach(p => {
+                            const processTabs = (tabs) => {
+                                if (!tabs) return;
+                                tabs.forEach(t => {
+                                    if (t.title || t.quote || t.text || t.imageUrl || t.links) {
+                                        if (!t.blocks) t.blocks = [];
+                                        t.blocks.unshift({
+                                            title: t.title || "",
+                                            quote: t.quote || "",
+                                            text: t.text || "",
+                                            imageUrl: t.imageUrl || "",
+                                            links: t.links || ""
+                                        });
+                                        t.title = "";
+                                        t.quote = "";
+                                        t.text = "";
+                                        t.imageUrl = "";
+                                        t.links = "";
+                                    }
+                                });
+                            };
+                            if (p.data) {
+                                if (p.data.tabs) processTabs(p.data.tabs);
+                                if (p.data.accordions) {
+                                    p.data.accordions.forEach(acc => {
+                                        if (acc.type === 'tabs') processTabs(acc.tabs);
+                                    });
+                                }
+                            }
+                        });
+                    }
+                    appData.version = 8;
+                    await saveToSupabase(appData, false);
+                }
             } else {
                 appData = JSON.parse(JSON.stringify(defaultData));
                 await saveToSupabase(appData, false);
@@ -382,13 +420,21 @@
                 };
                 let tabsBtnHtml = (acc.tabs||[]).map((tab, i) => `<button class="tab-btn ${i===0?'active':''}" onclick="switchTab('tab-${sIdx}-${i}', this, ${sIdx})">${tab.tabName}</button>`).join('');
                 let tabsContentHtml = (acc.tabs||[]).map((tab, i) => {
-                    let imgHtml = tab.imageUrl ? `<img src="${tab.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="탭 이미지">` : '';
-                    let mainTitle = tab.title ? `<h2 style="font-size: 18px; margin-bottom: 10px; color:var(--accent);">${tab.title}</h2>` : '';
-                    let mainQuote = tab.quote && tab.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${tab.quote}"</div>` : '';
-                    let mainText = tab.text && tab.text.trim() !== '' ? `<p style="font-size: 14px; color: inherit; opacity:0.9; line-height: 1.6; margin-bottom:15px;">${formatTextToBr(tab.text)}</p>` : '';
-                    let linkListHtml = tab.links && tab.links.trim() !== '' ? `<div class="link-list" style="margin-top: 15px; margin-bottom: 15px;">${renderLinks(tab.links)}</div>` : '';
-                    
-                    return `<div id="tab-${sIdx}-${i}" class="tab-content-${sIdx} tab-content ${i===0?'active':''}"><div class="card">${mainTitle}${mainQuote}${imgHtml}${mainText}${linkListHtml}</div></div>`;
+                    let blocksHtml = '';
+                    if (tab.blocks && tab.blocks.length > 0) {
+                        blocksHtml = tab.blocks.map((b, bIdx) => {
+                            let bImg = b.imageUrl ? `<img src="${b.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="서브 탭 이미지">` : '';
+                            let bTitle = b.title ? `<h3 style="font-size: 16px; margin-bottom: 8px; color:var(--accent);">${b.title}</h3>` : '';
+                            let bQuote = b.quote && b.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${b.quote}"</div>` : '';
+                            let bText = b.text && b.text.trim() !== '' ? `<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(b.text)}</p>` : '';
+                            let bLinks = b.links && b.links.trim() !== '' ? `<div class="link-list" style="margin-top: 15px; margin-bottom: 15px;">${renderLinks(b.links)}</div>` : '';
+                            let bottomMargin = bIdx === tab.blocks.length - 1 ? '0' : '25px';
+                            let topMargin = bIdx === 0 ? '0' : '25px';
+                            let borderTop = bIdx === 0 ? '' : 'border-top:1px solid #eee; padding-top:25px;';
+                            return `<div style="margin-bottom:${bottomMargin}; margin-top:${topMargin}; ${borderTop}">${bTitle}${bQuote}${bImg}${bText}${bLinks}</div>`;
+                        }).join('');
+                    }
+                    return `<div id="tab-${sIdx}-${i}" class="tab-content-${sIdx} tab-content ${i===0?'active':''}"><div class="card">${blocksHtml}</div></div>`;
                 }).join('');
                 return `<div style="margin-bottom:20px;"><div class="tabs-container">${tabsBtnHtml}</div>${tabsContentHtml}</div>`;
             } else {
@@ -422,26 +468,21 @@
         };
         let tabsBtnHtml = d.tabs.map((tab, i) => `<button class="tab-btn ${i===0?'active':''}" onclick="switchTab('tab-${i}', this)">${tab.tabName}</button>`).join('');
         let tabsContentHtml = d.tabs.map((tab, i) => {
-            let imgHtml = tab.imageUrl ? `<img src="${tab.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="탭 이미지">` : '';
             let blocksHtml = '';
             if (tab.blocks && tab.blocks.length > 0) {
-                const hasMainContent = tab.title || (tab.quote && tab.quote.trim() !== '') || (tab.text && tab.text.trim() !== '') || tab.imageUrl || (tab.links && tab.links.trim() !== '');
-                blocksHtml = '<div style="' + (hasMainContent ? 'margin-top:30px; padding-top:30px; border-top:1px solid #eee;' : '') + '">' + tab.blocks.map(b => {
+                blocksHtml = tab.blocks.map((b, bIdx) => {
                     let bImg = b.imageUrl ? `<img src="${b.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="서브 탭 이미지">` : '';
                     let bTitle = b.title ? `<h3 style="font-size: 16px; margin-bottom: 8px; color:var(--accent);">${b.title}</h3>` : '';
                     let bQuote = b.quote && b.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${b.quote}"</div>` : '';
                     let bText = b.text && b.text.trim() !== '' ? `<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(b.text)}</p>` : '';
                     let bLinks = b.links && b.links.trim() !== '' ? `<div class="link-list" style="margin-top: 15px; margin-bottom: 15px;">${renderLinks(b.links)}</div>` : '';
-                    return `<div style="margin-bottom:25px;">${bTitle}${bQuote}${bImg}${bText}${bLinks}</div>`;
-                }).join('') + '</div>';
+                    let bottomMargin = bIdx === tab.blocks.length - 1 ? '0' : '25px';
+                    let topMargin = bIdx === 0 ? '0' : '25px';
+                    let borderTop = bIdx === 0 ? '' : 'border-top:1px solid #eee; padding-top:25px;';
+                    return `<div style="margin-bottom:${bottomMargin}; margin-top:${topMargin}; ${borderTop}">${bTitle}${bQuote}${bImg}${bText}${bLinks}</div>`;
+                }).join('');
             }
-            
-            let mainTitle = tab.title ? `<h2 style="font-size: 18px; margin-bottom: 10px; color:var(--accent);">${tab.title}</h2>` : '';
-            let mainQuote = tab.quote && tab.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${tab.quote}"</div>` : '';
-            let mainText = tab.text && tab.text.trim() !== '' ? `<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(tab.text)}</p>` : '';
-            let linkListHtml = tab.links && tab.links.trim() !== '' ? `<div class="link-list" style="margin-top: 15px; margin-bottom: 15px;">${renderLinks(tab.links)}</div>` : '';
-
-            return `<div id="tab-${i}" class="section tab-content ${i===0?'active':''}"><div class="card">${mainTitle}${mainQuote}${imgHtml}${mainText}${blocksHtml}${linkListHtml}</div></div>`;
+            return `<div id="tab-${i}" class="section tab-content ${i===0?'active':''}"><div class="card">${blocksHtml}</div></div>`;
         }).join('');
 
         appEl.innerHTML = `
@@ -561,7 +602,7 @@
         }
         renderAdmin(); 
     }
-    window.addSubCategory = function(pIdx, tIdx) { syncInputsBeforeAction(); if(!appData.profileList[pIdx].data.tabs[tIdx].blocks) appData.profileList[pIdx].data.tabs[tIdx].blocks = []; appData.profileList[pIdx].data.tabs[tIdx].blocks.push({ title: "새 서브 카테고리", quote: "", imageUrl: "", text: "본문 내용", links: "" }); renderAdmin(); }
+    window.addSubCategory = function(pIdx, tIdx) { syncInputsBeforeAction(); if(!appData.profileList[pIdx].data.tabs[tIdx].blocks) appData.profileList[pIdx].data.tabs[tIdx].blocks = []; appData.profileList[pIdx].data.tabs[tIdx].blocks.push({ title: "새 내용 블록", quote: "", imageUrl: "", text: "본문 내용", links: "" }); renderAdmin(); }
 
     function renderAdmin() {
         document.body.className = 'theme-admin';
@@ -630,11 +671,11 @@
     function renderAdminType2(pIdx, d) {
         let html = `<div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;" onclick="this.parentElement.classList.toggle('open')"><span>💼 상/하단 고정 영역 수정</span><span style="font-size:12px; color:#888;">▼</span></div><div class="admin-group-body"><h4 style="margin-bottom:10px;">상단 고정 영역</h4><div class="admin-form-group"><label>대제목</label><input type="text" value="${d.top.title}" oninput="setVal('profileList.${pIdx}.data.top.title', this.value)"></div><div class="admin-form-group"><label>인용구 (기울임 꼴)</label><input type="text" value="${d.top.quote}" oninput="setVal('profileList.${pIdx}.data.top.quote', this.value)"></div><div class="admin-form-group"><label>본문</label><textarea oninput="setVal('profileList.${pIdx}.data.top.text', this.value)">${d.top.text}</textarea></div></div></div><div class="admin-group open"><div class="admin-group-header" style="background:#f1f5f9; color:#333;" onclick="this.parentElement.classList.toggle('open')"><span>중앙 탭 영역 관리 (내용 및 이미지)</span><span style="font-size:12px; color:#888;">▼</span></div><div class="admin-group-body"><div id="sortable-tabs-${pIdx}">`;
         d.tabs.forEach((tab, i) => {
-            html += `<div class="admin-list-item sortable-tab-item" style="border-color:#b5815e;" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">탭 콘텐츠 ${i+1}</div><button type="button" onclick="const el = document.getElementById('admin-tab-blocks-${pIdx}-${i}'); el.style.display = el.style.display==='none'?'block':'none';" style="margin-left:10px; padding:4px 8px; font-size:12px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; color:#333;">접기/펴기</button><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs', ${i})">이 탭 삭제</button></div><div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.tabName', this.value)"></div><div id="admin-tab-blocks-${pIdx}-${i}" style="display:none; padding-top:10px;"><div class="admin-form-group"><label>내용 대제목 1 (메인 카테고리)</label><input type="text" value="${tab.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구 1</label><input type="text" value="${tab.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 등록 1</label>${getImageFieldHtml(`profileList.${pIdx}.data.tabs.${i}.imageUrl`, tab.imageUrl||'')}</div><div class="admin-form-group"><label>본문 설명 1</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.text', this.value)">${tab.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 1</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.links', this.value)">${tab.links}</textarea></div>`;
+            html += `<div class="admin-list-item sortable-tab-item" style="border-color:#b5815e;" data-idx="${i}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">탭 콘텐츠 ${i+1}</div><button type="button" onclick="const el = document.getElementById('admin-tab-blocks-${pIdx}-${i}'); el.style.display = el.style.display==='none'?'block':'none';" style="margin-left:10px; padding:4px 8px; font-size:12px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; color:#333;">접기/펴기</button><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs', ${i})">이 탭 삭제</button></div><div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.tabName', this.value)"></div><div id="admin-tab-blocks-${pIdx}-${i}" style="display:none; padding-top:10px;">`;
             if (tab.blocks && tab.blocks.length > 0) {
                 html += `<div id="sortable-subblocks-${pIdx}-${i}">`;
                 tab.blocks.forEach((b, bIdx) => {
-                    html += `<div class="admin-list-item sortable-subblock-item" data-idx="${bIdx}" style="background:#f9f9f9; border-color:#ddd;"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">서브 카테고리 ${bIdx+2}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs.${i}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>내용 대제목 ${bIdx+2}</label><input type="text" value="${b.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구 ${bIdx+2}</label><input type="text" value="${b.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 등록 ${bIdx+2}</label>${getImageFieldHtml(`profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.imageUrl`, b.imageUrl||'')}</div><div class="admin-form-group"><label>본문 설명 ${bIdx+2}</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.text', this.value)">${b.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 ${bIdx+2}</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.links', this.value)">${b.links||''}</textarea></div></div>`;
+                    html += `<div class="admin-list-item sortable-subblock-item" data-idx="${bIdx}" style="background:#f9f9f9; border-color:#ddd;"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">내용 블록 ${bIdx+1}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs.${i}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>대제목</label><input type="text" value="${b.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>인용구 (기울임 텍스트)</label><input type="text" value="${b.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.quote', this.value)"></div><div class="admin-form-group"><label>이미지 등록</label>${getImageFieldHtml(`profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.imageUrl`, b.imageUrl||'')}</div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.text', this.value)">${b.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태)</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.links', this.value)">${b.links||''}</textarea></div></div>`;
                 });
                 html += `</div>`;
             }
