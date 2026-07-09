@@ -262,6 +262,22 @@
     const appEl = document.getElementById('app');
 
     function textToListHtml(text) { if(!text) return ''; return text.split('\n').filter(t => t.trim() !== '').map(item => `<li>${item}</li>`).join(''); }
+    function getYoutubeEmbedUrl(url) {
+        if (!url) return '';
+        let videoId = '';
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        if (match && match[2] && match[2].length === 11) {
+            videoId = match[2];
+        }
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+        return '';
+    }
+    function renderYoutube(url) {
+        const embedUrl = getYoutubeEmbedUrl(url);
+        if (!embedUrl) return '';
+        return `<div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; margin-bottom:15px; border-radius:8px;"><iframe src="${embedUrl}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe></div>`;
+    }
     function formatTextToBr(text) { if(!text) return ''; return text.replace(/\n/g, '<br/>'); }
     function getVal(path) { return path.split('.').reduce((acc, part) => acc && acc[part], appData); }
     function setVal(path, value) { const parts = path.split('.'); const last = parts.pop(); const target = parts.reduce((acc, part) => acc[part], appData); target[last] = value; }
@@ -415,7 +431,7 @@
                 const renderLinks = (linkString) => {
                     if(!linkString) return '';
                     return linkString.split('\n').filter(l => l.trim() !== '').map(item => {
-                        const parts = item.split('|'); return `<a href="${parts[1] || '#'}" target="_blank" class="btn btn-outline" style="padding:10px; margin-bottom:10px;">${parts[0]}</a>`;
+                        const parts = item.split('|'); return `<a href="${parts[1] || '#'}" target="_blank" class="btn btn-outline" style="padding:10px 16px; font-size:14px; border-radius:30px; margin-bottom:5px;">${parts[0]}</a>`;
                     }).join('');
                 };
                 let tabsBtnHtml = (acc.tabs||[]).map((tab, i) => `<button class="tab-btn ${i===0?'active':''}" onclick="switchTab('tab-${sIdx}-${i}', this, ${sIdx})">${tab.tabName}</button>`).join('');
@@ -423,6 +439,10 @@
                     let blocksHtml = '';
                     if (tab.blocks && tab.blocks.length > 0) {
                         blocksHtml = tab.blocks.map((b, bIdx) => {
+                            let yTop = b.youtubePosition === 'top' ? renderYoutube(b.youtubeUrl) : '';
+                            let yQuote = b.youtubePosition === 'quote' ? renderYoutube(b.youtubeUrl) : '';
+                            let yBottom = (!b.youtubePosition || b.youtubePosition === 'bottom') ? renderYoutube(b.youtubeUrl) : '';
+                            
                             let bImg = b.imageUrl ? `<img src="${b.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="서브 탭 이미지">` : '';
                             let bTitle = b.title ? `<h3 style="font-size: 16px; margin-bottom: 8px; color:var(--accent);">${b.title}</h3>` : '';
                             let bQuote = b.quote && b.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${b.quote}"</div>` : '';
@@ -431,7 +451,7 @@
                             let bottomMargin = bIdx === tab.blocks.length - 1 ? '0' : '25px';
                             let topMargin = bIdx === 0 ? '0' : '25px';
                             let borderTop = bIdx === 0 ? '' : 'border-top:1px solid #eee; padding-top:25px;';
-                            return `<div style="margin-bottom:${bottomMargin}; margin-top:${topMargin}; ${borderTop}">${bTitle}${bQuote}${bImg}${bText}${bLinks}</div>`;
+                            return `<div style="margin-bottom:${bottomMargin}; margin-top:${topMargin}; ${borderTop}">${yTop}${bTitle}${bQuote}${yQuote}${bImg}${bText}${yBottom}${bLinks}</div>`;
                         }).join('');
                     }
                     return `<div id="tab-${sIdx}-${i}" class="tab-content-${sIdx} tab-content ${i===0?'active':''}"><div class="card">${blocksHtml}</div></div>`;
@@ -463,7 +483,7 @@
         const renderLinks = (linkString) => {
             if(!linkString) return '';
             return linkString.split('\n').filter(l => l.trim() !== '').map(item => {
-                const parts = item.split('|'); return `<a href="${parts[1] || '#'}" target="_blank" class="btn btn-outline">${parts[0]}</a>`;
+                const parts = item.split('|'); return `<a href="${parts[1] || '#'}" target="_blank" class="btn btn-outline" style="padding:10px 16px; font-size:14px; border-radius:30px; margin-bottom:5px;">${parts[0]}</a>`;
             }).join('');
         };
         let tabsBtnHtml = d.tabs.map((tab, i) => `<button class="tab-btn ${i===0?'active':''}" onclick="switchTab('tab-${i}', this)">${tab.tabName}</button>`).join('');
@@ -471,6 +491,10 @@
             let blocksHtml = '';
             if (tab.blocks && tab.blocks.length > 0) {
                 blocksHtml = tab.blocks.map((b, bIdx) => {
+                    let yTop = b.youtubePosition === 'top' ? renderYoutube(b.youtubeUrl) : '';
+                    let yQuote = b.youtubePosition === 'quote' ? renderYoutube(b.youtubeUrl) : '';
+                    let yBottom = (!b.youtubePosition || b.youtubePosition === 'bottom') ? renderYoutube(b.youtubeUrl) : '';
+                            
                     let bImg = b.imageUrl ? `<img src="${b.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:15px; display:block;" alt="서브 탭 이미지">` : '';
                     let bTitle = b.title ? `<h3 style="font-size: 16px; margin-bottom: 8px; color:var(--accent);">${b.title}</h3>` : '';
                     let bQuote = b.quote && b.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${b.quote}"</div>` : '';
@@ -479,7 +503,7 @@
                     let bottomMargin = bIdx === tab.blocks.length - 1 ? '0' : '25px';
                     let topMargin = bIdx === 0 ? '0' : '25px';
                     let borderTop = bIdx === 0 ? '' : 'border-top:1px solid #eee; padding-top:25px;';
-                    return `<div style="margin-bottom:${bottomMargin}; margin-top:${topMargin}; ${borderTop}">${bTitle}${bQuote}${bImg}${bText}${bLinks}</div>`;
+                    return `<div style="margin-bottom:${bottomMargin}; margin-top:${topMargin}; ${borderTop}">${yTop}${bTitle}${bQuote}${yQuote}${bImg}${bText}${yBottom}${bLinks}</div>`;
                 }).join('');
             }
             return `<div id="tab-${i}" class="section tab-content ${i===0?'active':''}"><div class="card">${blocksHtml}</div></div>`;
@@ -595,14 +619,22 @@
     }
     window.addTabContent = function(pIdx, i) { 
         syncInputsBeforeAction(); 
+        let defaultBlock = { title: "섹션 제목", quote: "인용구", imageUrl: "", youtubeUrl: "", youtubePosition: "bottom", text: "본문 내용", links: "버튼명|#" };
         if (i !== undefined) {
-            appData.profileList[pIdx].data.accordions[i].tabs.push({ tabName: "새 탭 버튼", title: "섹션 제목", quote: "인용구", imageUrl: "", text: "본문 내용", links: "버튼명|#" }); 
+            appData.profileList[pIdx].data.accordions[i].tabs.push({ tabName: "새 탭 버튼", blocks: [defaultBlock] }); 
         } else {
-            appData.profileList[pIdx].data.tabs.push({ tabName: "새 탭 버튼", title: "섹션 제목", quote: "인용구", imageUrl: "", text: "본문 내용", links: "버튼명|#", blocks: [] }); 
+            appData.profileList[pIdx].data.tabs.push({ tabName: "새 탭 버튼", blocks: [defaultBlock] }); 
         }
         renderAdmin(); 
     }
-    window.addSubCategory = function(pIdx, tIdx) { syncInputsBeforeAction(); if(!appData.profileList[pIdx].data.tabs[tIdx].blocks) appData.profileList[pIdx].data.tabs[tIdx].blocks = []; appData.profileList[pIdx].data.tabs[tIdx].blocks.push({ title: "새 내용 블록", quote: "", imageUrl: "", text: "본문 내용", links: "" }); renderAdmin(); }
+    window.addSubCategory = function(pIdx, tIdx) { syncInputsBeforeAction(); if(!appData.profileList[pIdx].data.tabs[tIdx].blocks) appData.profileList[pIdx].data.tabs[tIdx].blocks = []; appData.profileList[pIdx].data.tabs[tIdx].blocks.push({ title: "새 내용 블록", quote: "", imageUrl: "", youtubeUrl: "", youtubePosition: "bottom", text: "본문 내용", links: "" }); renderAdmin(); }
+
+    window.addSubCategoryToAccordionTab = function(pIdx, i, tIdx) {
+        syncInputsBeforeAction();
+        if(!appData.profileList[pIdx].data.accordions[i].tabs[tIdx].blocks) appData.profileList[pIdx].data.accordions[i].tabs[tIdx].blocks = [];
+        appData.profileList[pIdx].data.accordions[i].tabs[tIdx].blocks.push({ title: "새 내용 블록", quote: "", imageUrl: "", youtubeUrl: "", youtubePosition: "bottom", text: "본문 내용", links: "" });
+        renderAdmin();
+    }
 
     function renderAdmin() {
         document.body.className = 'theme-admin';
@@ -652,7 +684,15 @@
             if (acc.type === 'tabs') {
                 html += `<label style="font-size:13px; font-weight:bold; margin-bottom:10px; display:block; color:#444;">탭 세부 내용</label><div id="sortable-tabs-${pIdx}-${i}">`;
                 (acc.tabs||[]).forEach((tab, tIdx) => {
-                    html += `<div class="admin-list-item sortable-tab-item" style="border-color:#b5815e; background:#fff;" data-idx="${tIdx}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">탭 버튼 ${tIdx+1}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.accordions.${i}.tabs', ${tIdx})">이 탭 삭제</button></div><div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.tabName', this.value)"></div><div class="admin-form-group"><label>내용 대제목</label><input type="text" value="${tab.title}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구</label><input type="text" value="${tab.quote}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 등록</label>${getImageFieldHtml(`profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.imageUrl`, tab.imageUrl||'')}</div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.text', this.value)">${tab.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태로 줄바꿈 기입)</label><textarea oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.links', this.value)">${tab.links}</textarea></div></div>`;
+                    html += `<div class="admin-list-item sortable-tab-item" style="border-color:#b5815e; background:#fff;" data-idx="${tIdx}"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area">탭 버튼 ${tIdx+1}</div><button type="button" onclick="const el = document.getElementById('admin-acc-tabs-blocks-${pIdx}-${i}-${tIdx}'); el.style.display = el.style.display==='none'?'block':'none';" style="margin-left:10px; padding:4px 8px; font-size:12px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; color:#333;">접기/펴기</button><button class="del" onclick="arrDel('profileList.${pIdx}.data.accordions.${i}.tabs', ${tIdx})">이 탭 삭제</button></div><div class="admin-form-group"><label>버튼에 노출될 탭 이름</label><input type="text" value="${tab.tabName}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.tabName', this.value)"></div><div id="admin-acc-tabs-blocks-${pIdx}-${i}-${tIdx}" style="display:none; padding-top:10px;">`;
+                    if (tab.blocks && tab.blocks.length > 0) {
+                        html += `<div id="sortable-acc-tabs-blocks-${pIdx}-${i}-${tIdx}">`;
+                        tab.blocks.forEach((b, bIdx) => {
+                            html += `<div class="admin-list-item sortable-subblock-item" data-idx="${bIdx}" style="background:#f9f9f9; border-color:#ddd;"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">내용 블록 ${bIdx+1}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>대제목</label><input type="text" value="${b.title}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>인용구 (기울임 텍스트)</label><input type="text" value="${b.quote}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.blocks.${bIdx}.quote', this.value)"></div><div class="admin-form-group"><label>이미지 등록</label>${getImageFieldHtml(`profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.blocks.${bIdx}.imageUrl`, b.imageUrl||'')}</div><div class="admin-form-group"><label>유튜브 영상 링크</label><input type="text" value="${b.youtubeUrl||''}" oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.blocks.${bIdx}.youtubeUrl', this.value)" placeholder="https://youtu.be/..."></div><div class="admin-form-group"><label>유튜브 영상 위치</label><select oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.blocks.${bIdx}.youtubePosition', this.value)"><option value="bottom" ${(!b.youtubePosition || b.youtubePosition==='bottom')?'selected':''}>하단</option><option value="top" ${b.youtubePosition==='top'?'selected':''}>최상단</option><option value="quote" ${b.youtubePosition==='quote'?'selected':''}>인용구 아래</option></select></div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.blocks.${bIdx}.text', this.value)">${b.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태)</label><textarea oninput="setVal('profileList.${pIdx}.data.accordions.${i}.tabs.${tIdx}.blocks.${bIdx}.links', this.value)">${b.links||''}</textarea></div></div>`;
+                        });
+                        html += `</div>`;
+                    }
+                    html += `<button class="btn-add" style="background:#fff;" onclick="addSubCategoryToAccordionTab(${pIdx}, ${i}, ${tIdx})">+ 이 탭 안에 내용 블록 추가</button></div></div>`;
                 });
                 html += `</div><button class="btn-add" style="background:#fff;" onclick="addTabContent(${pIdx}, ${i})">+ 새 탭 콘텐츠 추가</button></div></div>`;
             } else {
@@ -675,11 +715,11 @@
             if (tab.blocks && tab.blocks.length > 0) {
                 html += `<div id="sortable-subblocks-${pIdx}-${i}">`;
                 tab.blocks.forEach((b, bIdx) => {
-                    html += `<div class="admin-list-item sortable-subblock-item" data-idx="${bIdx}" style="background:#f9f9f9; border-color:#ddd;"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">내용 블록 ${bIdx+1}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs.${i}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>대제목</label><input type="text" value="${b.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>인용구 (기울임 텍스트)</label><input type="text" value="${b.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.quote', this.value)"></div><div class="admin-form-group"><label>이미지 등록</label>${getImageFieldHtml(`profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.imageUrl`, b.imageUrl||'')}</div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.text', this.value)">${b.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태)</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.links', this.value)">${b.links||''}</textarea></div></div>`;
+                    html += `<div class="admin-list-item sortable-subblock-item" data-idx="${bIdx}" style="background:#f9f9f9; border-color:#ddd;"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">내용 블록 ${bIdx+1}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs.${i}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>대제목</label><input type="text" value="${b.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>인용구 (기울임 텍스트)</label><input type="text" value="${b.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.quote', this.value)"></div><div class="admin-form-group"><label>이미지 등록</label>${getImageFieldHtml(`profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.imageUrl`, b.imageUrl||'')}</div><div class="admin-form-group"><label>유튜브 영상 링크</label><input type="text" value="${b.youtubeUrl||''}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.youtubeUrl', this.value)" placeholder="https://youtu.be/..."></div><div class="admin-form-group"><label>유튜브 영상 위치</label><select oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.youtubePosition', this.value)"><option value="bottom" ${(!b.youtubePosition || b.youtubePosition==='bottom')?'selected':''}>하단</option><option value="top" ${b.youtubePosition==='top'?'selected':''}>최상단</option><option value="quote" ${b.youtubePosition==='quote'?'selected':''}>인용구 아래</option></select></div><div class="admin-form-group"><label>본문 설명</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.text', this.value)">${b.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 (이름|URL 형태)</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.links', this.value)">${b.links||''}</textarea></div></div>`;
                 });
                 html += `</div>`;
             }
-            html += `<button class="btn-add" style="background:#fff;" onclick="addSubCategory(${pIdx}, ${i})">+ 이 탭 안에 서브 카테고리 추가</button></div></div>`;
+            html += `<button class="btn-add" style="background:#fff;" onclick="addSubCategory(${pIdx}, ${i})">+ 이 탭 안에 내용 블록 추가</button></div></div>`;
         });
         html += `</div><button class="btn-add" style="margin-top:15px;" onclick="addTabContent(${pIdx})">+ 새 탭 콘텐츠 추가</button></div></div>`;
         return html;
