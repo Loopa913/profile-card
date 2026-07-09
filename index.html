@@ -272,7 +272,9 @@
         }
         if (videoId) {
             let res = `https://www.youtube.com/embed/${videoId}`;
-            if (autoplay) res += '?autoplay=1&mute=1';
+            if (autoplay === true || autoplay === 'true') {
+                res += '?autoplay=1&mute=1';
+            }
             return res;
         }
         return '';
