@@ -431,7 +431,8 @@
                     let bTitle = b.title ? `<h3 style="font-size: 16px; margin-bottom: 8px; color:var(--accent);">${b.title}</h3>` : '';
                     let bQuote = b.quote && b.quote.trim() !== '' ? `<div class="quote-box" style="font-size:13px; text-align:left;">"${b.quote}"</div>` : '';
                     let bText = b.text && b.text.trim() !== '' ? `<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(b.text)}</p>` : '';
-                    return `<div style="margin-bottom:25px;">${bTitle}${bQuote}${bImg}${bText}</div>`;
+                    let bLinks = b.links && b.links.trim() !== '' ? `<div class="link-list" style="margin-top: 15px; margin-bottom: 15px;">${renderLinks(b.links)}</div>` : '';
+                    return `<div style="margin-bottom:25px;">${bTitle}${bQuote}${bImg}${bText}${bLinks}</div>`;
                 }).join('') + '</div>';
             }
             
@@ -440,7 +441,7 @@
             let mainText = tab.text && tab.text.trim() !== '' ? `<p style="font-size: 14px; color: #555; line-height: 1.6;">${formatTextToBr(tab.text)}</p>` : '';
             let linkListHtml = tab.links && tab.links.trim() !== '' ? `<div class="link-list" style="margin-top: 15px; margin-bottom: 15px;">${renderLinks(tab.links)}</div>` : '';
 
-            return `<div id="tab-${i}" class="section tab-content ${i===0?'active':''}"><div class="card">${mainTitle}${mainQuote}${imgHtml}${mainText}${linkListHtml}${blocksHtml}</div></div>`;
+            return `<div id="tab-${i}" class="section tab-content ${i===0?'active':''}"><div class="card">${mainTitle}${mainQuote}${imgHtml}${mainText}${blocksHtml}${linkListHtml}</div></div>`;
         }).join('');
 
         appEl.innerHTML = `
@@ -560,7 +561,7 @@
         }
         renderAdmin(); 
     }
-    window.addSubCategory = function(pIdx, tIdx) { syncInputsBeforeAction(); if(!appData.profileList[pIdx].data.tabs[tIdx].blocks) appData.profileList[pIdx].data.tabs[tIdx].blocks = []; appData.profileList[pIdx].data.tabs[tIdx].blocks.push({ title: "새 서브 카테고리", quote: "", imageUrl: "", text: "본문 내용" }); renderAdmin(); }
+    window.addSubCategory = function(pIdx, tIdx) { syncInputsBeforeAction(); if(!appData.profileList[pIdx].data.tabs[tIdx].blocks) appData.profileList[pIdx].data.tabs[tIdx].blocks = []; appData.profileList[pIdx].data.tabs[tIdx].blocks.push({ title: "새 서브 카테고리", quote: "", imageUrl: "", text: "본문 내용", links: "" }); renderAdmin(); }
 
     function renderAdmin() {
         document.body.className = 'theme-admin';
@@ -633,7 +634,7 @@
             if (tab.blocks && tab.blocks.length > 0) {
                 html += `<div id="sortable-subblocks-${pIdx}-${i}">`;
                 tab.blocks.forEach((b, bIdx) => {
-                    html += `<div class="admin-list-item sortable-subblock-item" data-idx="${bIdx}" style="background:#f9f9f9; border-color:#ddd;"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">서브 카테고리 ${bIdx+2}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs.${i}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>내용 대제목 ${bIdx+2}</label><input type="text" value="${b.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구 ${bIdx+2}</label><input type="text" value="${b.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 등록 ${bIdx+2}</label>${getImageFieldHtml(`profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.imageUrl`, b.imageUrl||'')}</div><div class="admin-form-group"><label>본문 설명 ${bIdx+2}</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.text', this.value)">${b.text}</textarea></div></div>`;
+                    html += `<div class="admin-list-item sortable-subblock-item" data-idx="${bIdx}" style="background:#f9f9f9; border-color:#ddd;"><div class="admin-controls"><span class="drag-handle">☰</span> <div class="title-area sub">서브 카테고리 ${bIdx+2}</div><button class="del" onclick="arrDel('profileList.${pIdx}.data.tabs.${i}.blocks', ${bIdx})">삭제</button></div><div class="admin-form-group"><label>내용 대제목 ${bIdx+2}</label><input type="text" value="${b.title}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.title', this.value)"></div><div class="admin-form-group"><label>내용 인용구 ${bIdx+2}</label><input type="text" value="${b.quote}" oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.quote', this.value)"></div><div class="admin-form-group"><label>패널 이미지 등록 ${bIdx+2}</label>${getImageFieldHtml(`profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.imageUrl`, b.imageUrl||'')}</div><div class="admin-form-group"><label>본문 설명 ${bIdx+2}</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.text', this.value)">${b.text}</textarea></div><div class="admin-form-group"><label>하단 연결 버튼들 ${bIdx+2}</label><textarea oninput="setVal('profileList.${pIdx}.data.tabs.${i}.blocks.${bIdx}.links', this.value)">${b.links||''}</textarea></div></div>`;
                 });
                 html += `</div>`;
             }
